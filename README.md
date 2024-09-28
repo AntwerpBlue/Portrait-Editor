@@ -4,6 +4,7 @@
 
 ## 课题简介
 
+本项目基于2024 Siggraph PortraitGen(https://ustc3dv.github.io/PortraitGen/)
 
 
 ## 主要研究学科和方向
