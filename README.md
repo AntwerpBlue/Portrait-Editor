@@ -4,7 +4,7 @@
 
 ## 课题简介
 
-本项目基于2024 Siggraph PortraitGen(https://ustc3dv.github.io/PortraitGen/)
+本项目基于2024 Siggraph PortraitGen(https://ustc3dv.github.io/PortraitGen/)开发，实现一个风格化视频编辑小程序，用户可以上传自己的视频，通过文字描述或者图像驱动实现视频的风格化迁移。
 
 
 ## 主要研究学科和方向
