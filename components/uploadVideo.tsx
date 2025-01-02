@@ -2,16 +2,34 @@ import React from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { message, Upload } from 'antd';
+import axios from 'axios';
 
 const { Dragger } = Upload;
+
+const handleUploadSuccess = (response: any) => {
+  console.log('File ID:',response.file_id);
+}
 
 const props: UploadProps = {
   name: 'file',
   multiple: false,
 
-  action: 'https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload',
+  action: 'http://127.0.0.1:5000/upload',
   // ////////ADPATE TO REAL API!!!!!!///////////
-  
+  customRequest(file){
+    const formData = new FormData();
+    formData.append('file', file.file);
+    debugger
+    axios.post('http://127.0.0.1:5000/upload', formData)
+      .then(response => {
+        debugger
+        console.log(response.data.file_id);
+      })
+      .catch(error => {
+        console.error('Error:',error);
+      });
+  },
+
   beforeUpload(file) {
     const isVideo = file.type === 'video/mp4';
     if (!isVideo) {
@@ -35,6 +53,8 @@ const props: UploadProps = {
     console.log('Dropped files', e.dataTransfer.files);
   },
 };
+
+
 
 const UploadVideo: React.FC = () => {
     return (
