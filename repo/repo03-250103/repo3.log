@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2021.12.11)  2 JAN 2025 10:40
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/W32TeX) (preloaded format=xelatex 2021.12.11)  3 JAN 2025 01:28
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1250,6 +1250,10 @@ Missing character: There is no 2 ("32) in font nullfont!
 [1
 
 ]
+File: pic2.png Graphic file (type bmp)
+<pic2.png>
+
+Missing character: There is no 2 ("32) in font nullfont!
 Missing character: There is no 2 ("32) in font nullfont!
 [2
 
@@ -1258,7 +1262,28 @@ File: pic1.png Graphic file (type bmp)
 <pic1.png>
 
 Missing character: There is no 2 ("32) in font nullfont!
+Missing character: There is no 2 ("32) in font nullfont!
 [3
+
+]
+File: pic3.png Graphic file (type bmp)
+<pic3.png>
+
+Missing character: There is no 2 ("32) in font nullfont!
+Missing character: There is no 2 ("32) in font nullfont!
+[4
+
+]
+Missing character: There is no 2 ("32) in font nullfont!
+Missing character: There is no 2 ("32) in font nullfont!
+[5
+
+]
+File: pic4.png Graphic file (type bmp)
+<pic4.png>
+
+Missing character: There is no 2 ("32) in font nullfont!
+[6
 
 ]
 \tf@nav=\write6
@@ -1272,15 +1297,15 @@ Missing character: There is no 2 ("32) in font nullfont!
 
  (./repo3.aux)
 Package rerunfilecheck Info: File `repo3.out' has not changed.
-(rerunfilecheck)             Checksum: BC0249E8578653E1CACB9A95BB2F2B8F;166.
+(rerunfilecheck)             Checksum: 8AB2C4F4870FA7C82D933A13E760734E;150.
  ) 
 Here is how much of TeX's memory you used:
- 34978 strings out of 476257
- 754145 string characters out of 5814693
- 1251883 words of memory out of 5000000
- 54939 multiletter control sequences out of 15000+600000
+ 35036 strings out of 476257
+ 755307 string characters out of 5814693
+ 1251882 words of memory out of 5000000
+ 54994 multiletter control sequences out of 15000+600000
  405648 words of font info for 57 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  128i,19n,122p,1004b,656s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on repo3.pdf (3 pages).
+Output written on repo3.pdf (6 pages).
