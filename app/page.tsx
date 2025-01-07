@@ -15,9 +15,9 @@ import {
   UserOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Menu, theme, Typography, Steps } from 'antd';
+import { Button, Layout, Menu, theme } from 'antd';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Sider } = Layout;
 
 const App: React.FC =()=>{
   const [collapsed, setCollapsed] = useState(false);
