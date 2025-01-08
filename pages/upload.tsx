@@ -6,26 +6,30 @@ import UploadVideo from '../components/uploadVideo'
 import SelectPrompt from '../components/selectPrompt'
 import SubmitRequest from '../components/submitRequest'
 
-const steps = [
-  {
-    title: 'Upload Video',
-    content: (<UploadVideo/>),
-  },
-  {
-    title: 'Select Editor',
-    content: (<SelectPrompt/>),
-  },
-  {
-    title: 'Submit',
-    content: (<SubmitRequest/>),
-  },
-];
-
 const UploadPage: React.FC = () => {
   const { token } = theme.useToken();
   const [current, setCurrent] = useState(0);
-
+  const [isUploaded, setIsUploaded] = useState(false);
+  const steps = [
+    {
+      title: 'Upload Video',
+      content: (<UploadVideo onUpload={() => setIsUploaded(true)}/>),
+    },
+    {
+      title: 'Select Editor',
+      content: (<SelectPrompt/>),
+    },
+    {
+      title: 'Submit',
+      content: (<SubmitRequest/>),
+    },
+  ];
+  
   const next = () => {
+    if(current === 0 && !isUploaded){
+      message.error('Please upload a video first!');
+      return;
+    }
     setCurrent(current + 1);
   };
 

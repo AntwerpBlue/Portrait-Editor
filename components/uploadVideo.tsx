@@ -6,57 +6,48 @@ import axios from 'axios';
 
 const { Dragger } = Upload;
 
-const handleUploadSuccess = (response: any) => {
-  console.log('File ID:',response.file_id);
-}
-
-const props: UploadProps = {
-  name: 'file',
-  multiple: false,
-
-  action: 'http://127.0.0.1:5000/upload',
-  // ////////ADPATE TO REAL API!!!!!!///////////
-  customRequest(file){
-    const formData = new FormData();
-    formData.append('file', file.file);
-    debugger
-    axios.post('http://127.0.0.1:5000/upload', formData)
-      .then(response => {
-        debugger
-        console.log(response.data.file_id);
-      })
-      .catch(error => {
-        console.error('Error:',error);
-      });
-  },
-
-  beforeUpload(file) {
-    const isVideo = file.type === 'video/mp4';
-    if (!isVideo) {
-      message.error('You can only upload mp4 file!');
-    }
-    return isVideo || Upload.LIST_IGNORE;
-  },
-
-  onChange(info) {
-    const { status } = info.file;
-    if (status !== 'uploading') {
-      console.log(info.file, info.fileList);
-    }
-    if (status === 'done') {
-      message.success(`${info.file.name} file uploaded successfully.`);
-    } else if (status === 'error') {
-      message.error(`${info.file.name} file upload failed.`);
-    }
-  },
-  onDrop(e) {
-    console.log('Dropped files', e.dataTransfer.files);
-  },
-};
-
-
-
-const UploadVideo: React.FC = () => {
+const UploadVideo: React.FC<{onUpload: () => void}> = ({ onUpload }) => {
+  const props: UploadProps = {
+    name: 'file',
+    multiple: false,
+  
+    customRequest(options){
+      const formData = new FormData();
+      formData.append('file', options.file);
+      axios.post('http://localhost:5000/upload', formData)
+        .then(response => {
+          console.log(response.data.file_id);
+          if(onUpload){onUpload();}
+          if(options.onSuccess)options.onSuccess(response.data);
+        })
+        .catch(error => {
+          console.error('Error:',error);
+        });
+    },
+  
+    beforeUpload(file) {
+      const isVideo = file.type === 'video/mp4';
+      if (!isVideo) {
+        message.error('You can only upload mp4 file!');
+      }
+      return isVideo || Upload.LIST_IGNORE;
+    },
+  
+    onChange(info) {
+      const { status } = info.file;
+      if (status !== 'uploading') {
+        console.log(info.file, info.fileList);
+      }
+      if (status === 'done') {
+        message.success(`${info.file.name} file uploaded successfully.`);
+      } else if (status === 'error') {
+        message.error(`${info.file.name} file upload failed.`);
+      }
+    },
+    onDrop(e) {
+      console.log('Dropped files', e.dataTransfer.files);
+    },
+  };
     return (
     <Dragger {...props}>
         <p className="ant-upload-drag-icon">
