@@ -1,2 +1,0 @@
-\beamer@sectionintoc {1}{前端页面}{2}{0}{1}
-\beamer@sectionintoc {2}{后端业务}{3}{0}{2}

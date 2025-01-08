@@ -1,3 +1,0 @@
-\beamer@sectionintoc {1}{近期进展}{2}{0}{1}
-\beamer@sectionintoc {2}{问题}{5}{0}{2}
-\beamer@sectionintoc {3}{编程提高}{6}{0}{3}
