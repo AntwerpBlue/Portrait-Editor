@@ -1,8 +1,46 @@
 import React, {useState} from 'react'
-import type { FormProps } from 'antd';
 import { Button, message, Form, Input } from 'antd';
+import type { UploadFile } from 'antd';
+import type { Prompt } from '../pages/upload';
+import axios from 'axios';
 
-const SubmitRequest: React.FC = () => {
+interface SubmitRequestProps{
+    videoId:string|null,
+    image:UploadFile|null,
+    prompt:Prompt
+}
+
+const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, image, prompt }) => { 
+    const [email, setEmail] = useState('')
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(e.target.value);
+    }
+
+    const handleSubmit = () => {
+        const formData = new FormData();
+        formData.append('videoId', videoId as string);
+        formData.append('promptType', prompt.type);
+        formData.append('promptContent', prompt.prompt);
+        formData.append('email', email);
+        if (image) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (e.target && e.target.result) {
+                    formData.append('image', new Blob([e.target.result], { type: image.type }));
+                }
+            };
+            reader.readAsArrayBuffer(image.originFileObj as File);
+        }
+        axios.post('http://localhost:5000/submit', formData)
+            .then((response) => {
+                message.success('Submit successfully!');
+            })
+            .catch((error) => {
+                message.error('Submit failed, please try again later.');
+            });
+    }
+
     return(
         <Form
             name="basic"
@@ -18,11 +56,11 @@ const SubmitRequest: React.FC = () => {
             name="email"
             rules={[{ required: true, message: 'Please input your email' }]}
             >
-            <Input />
+            <Input placeholder='Please input your email' onChange={handleEmailChange}/>
             </Form.Item>
 
             <Form.Item label={null}>
-            <Button type="primary" htmlType="submit" onClick={()=>{message.success('Thanks for your request!')}}>
+            <Button type="primary" htmlType="submit" onClick={handleSubmit}>
                 Submit
             </Button>
             </Form.Item>

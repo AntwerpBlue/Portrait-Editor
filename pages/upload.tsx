@@ -1,18 +1,25 @@
 import React, {useState} from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { Steps, message, Button, theme } from 'antd';
+import type { UploadFile } from 'antd';
 
 import UploadVideo from '../components/uploadVideo'
 import SelectPrompt from '../components/selectPrompt'
 import UploadImage from '../components/uploadImage'
 import SubmitRequest from '../components/submitRequest'
 
+export interface Prompt{
+  type:string,
+  prompt:string
+}
+
 const UploadPage: React.FC = () => {
   const { token } = theme.useToken();
+  const [videoId, setVideoId] = useState<string|null>(null)
   const [current, setCurrent] = useState(0);
   const [isUploaded, setIsUploaded] = useState(false);
-  const [videoData, setVideoData] =useState(null);
-  const [promptData, setPromptData] =useState<{type:string, prompt:string}>({type:"", prompt:""});
+  const [imageData, setimageData] =useState<UploadFile|null>(null);
+  const [promptData, setPromptData] =useState<Prompt>({type:"", prompt:""});
 
   const handleData = (data: any) => {
     if(data.selectedOption === "textPrompt"){
@@ -26,10 +33,20 @@ const UploadPage: React.FC = () => {
     }
   }
 
+  const handleVideoUpload = (fileId:string)=>{
+    setIsUploaded(true);
+    setVideoId(fileId);
+  }
+
+  const handleFileChange = (file: UploadFile) => {
+    setimageData(file);
+    console.log("Upload Success",file);
+  }
+
   const steps = [
     {
       title: 'Upload Video',
-      content: (<UploadVideo onUpload={() => setIsUploaded(true)}/>),
+      content: (<UploadVideo onUploadSuccess={handleVideoUpload}/>),
     },
     {
       title: 'Select Editor',
@@ -37,11 +54,11 @@ const UploadPage: React.FC = () => {
     },
     {
       title: 'Upload Image',
-      content: (<UploadImage />)
+      content: (<UploadImage onFileChange={handleFileChange}/>)
     },
     {
       title: 'Submit',
-      content: (<SubmitRequest/>),
+      content: (<SubmitRequest image={imageData} videoId={videoId} prompt={promptData}/>),
     },
   ];
   
@@ -65,7 +82,7 @@ const UploadPage: React.FC = () => {
       }
     }
     if(current === 2){
-      if(!videoData){
+      if(!imageData){
         message.error('Please upload an image!')
         return;
       }

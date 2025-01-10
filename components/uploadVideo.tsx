@@ -6,7 +6,11 @@ import axios from 'axios';
 
 const { Dragger } = Upload;
 
-const UploadVideo: React.FC<{onUpload: () => void}> = ({ onUpload }) => {
+interface UploadVideoProps {
+  onUploadSuccess: (file_id: string) => void;
+}
+
+const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
   const props: UploadProps = {
     name: 'file',
     multiple: false,
@@ -17,7 +21,7 @@ const UploadVideo: React.FC<{onUpload: () => void}> = ({ onUpload }) => {
       axios.post('http://localhost:5000/upload', formData)
         .then(response => {
           console.log(response.data.file_id);
-          if(onUpload){onUpload();}
+          if(onUploadSuccess){onUploadSuccess(response.data.file_id);}
           if(options.onSuccess)options.onSuccess(response.data);
         })
         .catch(error => {

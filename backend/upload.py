@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 import uuid
 
 app = Flask(__name__)
 CORS(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:QAQ122133122wzc@localhost/portrait_editor'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 @app.route('/upload', methods=['POST'])
 def upload_video():
@@ -21,14 +24,11 @@ def upload_video():
     else:
         return jsonify({'error': 'Invalid file format'}), 400
     
-@app.route('/prompt', methods=['POST'])
-def get_prompt():
-    data=request.get_json()
-    prompt_type=data.get('type')
-    if prompt_type=='text':
-        prompt=data.get('prompt')
-        return jsonify({'prompt':prompt})
 
+@app.route('/submit', methods=['POST'])
+def get_submit():
+    video_id= request.form.get('video_id')
+    return jsonify({'message': 'Submit successful'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

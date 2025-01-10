@@ -3,12 +3,18 @@ import { UploadOutlined } from '@ant-design/icons';
 import { Button, Upload } from 'antd';
 import type { UploadFile } from 'antd';
 
-
-const handleUpload = async (options: any) => {
-    
+interface UploadImageProps {
+  onFileChange: (file:UploadFile)=>void;
 }
 
-const UploadImage: React.FC = () => (
+const UploadImage: React.FC<UploadImageProps> = ({onFileChange}) => {
+  const handleUpload=async ({file,onSuccess}: any) => {
+    setTimeout(()=>{
+      onSuccess('ok');
+      onFileChange(file);
+    },10000);
+  };
+  return(
   <Upload
     customRequest={handleUpload}
     listType="picture"
@@ -17,6 +23,7 @@ const UploadImage: React.FC = () => (
       Upload
     </Button>
   </Upload>
-);
+  )
+};
 
 export default UploadImage;
