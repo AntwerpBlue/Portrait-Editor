@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import { Button, message, Form, Input } from 'antd';
-import type { Prompt } from '../pages/upload';
+import type { Prompt } from './upload';
 import axios from 'axios';
 
 interface SubmitRequestProps{

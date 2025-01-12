@@ -2,10 +2,10 @@ import React, {useState} from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { Steps, message, Button, theme } from 'antd';
 
-import UploadVideo from '../components/uploadVideo'
-import SelectPrompt from '../components/selectPrompt'
-import UploadImage from '../components/uploadImage'
-import SubmitRequest from '../components/submitRequest'
+import UploadVideo from './uploadVideo'
+import SelectPrompt from './selectPrompt'
+import UploadImage from './uploadImage'
+import SubmitRequest from './submitRequest'
 
 export interface Prompt{
   type:string,
