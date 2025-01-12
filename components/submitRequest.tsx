@@ -6,11 +6,11 @@ import axios from 'axios';
 
 interface SubmitRequestProps{
     videoId:string|null,
-    image:UploadFile|null,
+    imageId:string|null,
     prompt:Prompt
 }
 
-const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, image, prompt }) => { 
+const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, imageId, prompt }) => { 
     const [email, setEmail] = useState('')
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,21 +23,15 @@ const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, image, prompt })
         formData.append('promptType', prompt.type);
         formData.append('promptContent', prompt.prompt);
         formData.append('email', email);
-        if (image) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (e.target && e.target.result) {
-                    formData.append('image', new Blob([e.target.result], { type: image.type }));
-                }
-            };
-            reader.readAsArrayBuffer(image.originFileObj as File);
+        if (imageId) {
+            formData.append('imageId', imageId as string);
         }
         axios.post('http://localhost:5000/submit', formData)
             .then((response) => {
                 message.success('Submit successfully!');
             })
             .catch((error) => {
-                message.error('Submit failed, please try again later.');
+                message.error('error', error.message);
             });
     }
 

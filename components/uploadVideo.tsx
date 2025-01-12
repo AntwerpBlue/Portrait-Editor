@@ -18,7 +18,7 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
     customRequest(options){
       const formData = new FormData();
       formData.append('file', options.file);
-      axios.post('http://localhost:5000/upload', formData)
+      axios.post('http://localhost:5000/uploadVideo', formData)
         .then(response => {
           console.log(response.data.file_id);
           if(onUploadSuccess){onUploadSuccess(response.data.file_id);}

@@ -18,7 +18,7 @@ const UploadPage: React.FC = () => {
   const [videoId, setVideoId] = useState<string|null>(null)
   const [current, setCurrent] = useState(0);
   const [isUploaded, setIsUploaded] = useState(false);
-  const [imageData, setimageData] =useState<UploadFile|null>(null);
+  const [imageId, setimageId] =useState<string|null>(null);
   const [promptData, setPromptData] =useState<Prompt>({type:"", prompt:""});
 
   const handleData = (data: any) => {
@@ -38,9 +38,9 @@ const UploadPage: React.FC = () => {
     setVideoId(fileId);
   }
 
-  const handleFileChange = (file: UploadFile) => {
-    setimageData(file);
-    console.log("Upload Success",file);
+  const handleFileChange = (fileId: string) => {
+    setimageId(fileId);
+    console.log("Upload Success",fileId);
   }
 
   const steps = [
@@ -54,11 +54,11 @@ const UploadPage: React.FC = () => {
     },
     {
       title: 'Upload Image',
-      content: (<UploadImage onFileChange={handleFileChange}/>)
+      content: (<UploadImage onUploadSuccess={handleFileChange}/>)
     },
     {
       title: 'Submit',
-      content: (<SubmitRequest image={imageData} videoId={videoId} prompt={promptData}/>),
+      content: (<SubmitRequest imageId={imageId} videoId={videoId} prompt={promptData}/>),
     },
   ];
   
@@ -82,7 +82,7 @@ const UploadPage: React.FC = () => {
       }
     }
     if(current === 2){
-      if(!imageData){
+      if(!imageId){
         message.error('Please upload an image!')
         return;
       }
