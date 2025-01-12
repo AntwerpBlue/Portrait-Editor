@@ -1,6 +1,5 @@
 import React, {useState} from 'react'
 import { Button, message, Form, Input } from 'antd';
-import type { UploadFile } from 'antd';
 import type { Prompt } from '../pages/upload';
 import axios from 'axios';
 

@@ -23,6 +23,15 @@ db_config={
 def get_db_connection():
     return pymysql.connect(**db_config)
 
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    if not username or not password:
+        return jsonify({'error': 'Missing required fields'}), 400
+    conn = get_db_connection()
+
 @app.route('/uploadVideo', methods=['POST'])
 def upload_video():
     if 'file' not in request.files:

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '@ant-design/v5-patch-for-react-19';
-import { Button, Upload, Form, Input, Select, UploadFile } from 'antd';
+import { Button, Form, Input, Select } from 'antd';
 
 const { Option } = Select;
 

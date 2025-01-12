@@ -1,7 +1,6 @@
 import React, {useState} from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { Steps, message, Button, theme } from 'antd';
-import type { UploadFile } from 'antd';
 
 import UploadVideo from '../components/uploadVideo'
 import SelectPrompt from '../components/selectPrompt'
