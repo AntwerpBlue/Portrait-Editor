@@ -30,7 +30,7 @@ const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, imageId, prompt 
                 message.success('Submit successfully!');
             })
             .catch((error) => {
-                message.error('error', error.message);
+                message.error(error.response.data.error);
             });
     }
 

@@ -20,7 +20,7 @@ export default function ForgetPage(){
   return (
     <ProConfigProvider hashed={false}>
       <div style={{ backgroundColor: token.colorBgContainer }}>
-        <LoginForm title="中科大3DCV课题组">
+        <LoginForm title="中科大3DV课题组">
           <Form></Form>
           <ProFormText
             name="username"

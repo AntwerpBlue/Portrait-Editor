@@ -29,7 +29,7 @@ export default function loginPage(){
   return (
     <ProConfigProvider hashed={false}>
       <div style={{ backgroundColor: token.colorBgContainer }}>
-        <LoginForm title="中科大3DCV课题组" subTitle="首次登录请点击忘记密码">
+        <LoginForm title="中科大3DV课题组" subTitle="首次登录请注册">
           <ProFormText
             name="username"
             fieldProps={{

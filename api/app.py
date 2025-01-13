@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import re
 import pymysql
 import uuid
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +22,10 @@ db_config={
     'database': 'portrait_editor',
 }
 
+def is_email_valid(email):
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$'
+    return re.match(pattern, email) is not None
+
 def get_db_connection():
     return pymysql.connect(**db_config)
 
@@ -28,9 +34,26 @@ def register():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    if not username or not password:
+    mail = data.get('mail')
+    if not username or not password or not mail:
         return jsonify({'error': 'Missing required fields'}), 400
+    if not is_email_valid(mail):
+        return jsonify({'error': 'Invalid email format'}), 400
     conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM user WHERE Mail = %s', (mail))
+            user = cursor.fetchone()
+            if user:
+                return jsonify({'error': 'The mail has been registered'}), 400
+            cursor.execute('SELECT COUNT(*) FROM user')
+            id = cursor.fetchone()[0]
+            hashed_password = generate_password_hash(password)
+            cursor.execute('INSERT INTO user (Name, Password, UserID, Mail) VALUES (%s, %s, %s, %s)', (username, hashed_password, id+1, mail))
+        conn.commit()
+    finally:
+        conn.close()
+    return jsonify({'message': 'User registered successfully'}), 200
 
 @app.route('/uploadVideo', methods=['POST'])
 def upload_video():

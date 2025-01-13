@@ -1,26 +1,67 @@
 "use client"
+import React from 'react';
+import { App } from 'antd';
 import {
   LockOutlined,
-  MobileOutlined,
   UserOutlined,
+  MailOutlined
 } from '@ant-design/icons';
+import {useRouter} from 'next/navigation';
 import {
   LoginForm,
   ProConfigProvider,
-  ProFormCheckbox,
   ProFormText,
 } from '@ant-design/pro-components';
-import { Form, theme, Tabs } from 'antd';
-
+import { theme } from 'antd';
+import '@ant-design/v5-patch-for-react-19';
+import axios from 'axios'
 
 export default function ForgetPage(){
+  const router=useRouter();
+  const { message } = App.useApp();
 
   const { token } = theme.useToken();
+
+  const handleSubmit = async (values:any) => {
+    if(!values.username||!values.password||!values.mail){
+      message.error("请输入完整信息")
+    }
+    else{
+      if(values.password.length<8){
+        message.error("密码长度不能小于8")
+      }
+      else{
+        axios.post("http://localhost:5000/register",{
+          username:values.username,
+          password:values.password,
+          mail:values.mail
+        })
+        .then((res)=>{
+          message.success("注册成功")
+          router.push('/login');
+        })
+        .catch((err)=>{
+          if(err.response){
+            message.error(err.response.data.error);
+          }
+          else{
+            message.error("注册失败");
+          }
+        });
+      }
+    }
+  }
 
   return (
     <ProConfigProvider hashed={false}>
       <div style={{ backgroundColor: token.colorBgContainer }}>
-        <LoginForm title="中科大3DCV课题组" >
+        <LoginForm 
+          title="中科大3DV课题组" 
+          subTitle="请输入正确的邮箱，如忘记密码将发送邮件到该邮箱" 
+          submitter={{
+            searchConfig:{submitText: '注册'},
+          }}
+          onFinish={handleSubmit}>
           <ProFormText
             name="username"
             fieldProps={{
@@ -80,15 +121,25 @@ export default function ForgetPage(){
               },
             ]}
           />
-          
+          <ProFormText 
+            name="mail" 
+            fieldProps={{
+              size: 'large',
+              prefix: <MailOutlined className={'prefixIcon'} />,
+            }}
+            placeholder={'请输入邮箱'}
+            rules={[
+              {
+                required: true,
+                message: '请输入邮箱!',
+              }
+            ]}
+          />
           <div
             style={{
               marginBlockEnd: 24,
             }}
           >
-            <ProFormCheckbox noStyle name="autoLogin">
-              自动登录
-            </ProFormCheckbox>
           </div>
         </LoginForm>
       </div>
