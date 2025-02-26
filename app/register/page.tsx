@@ -1,6 +1,6 @@
 "use client"
 import React from 'react';
-import { App } from 'antd';
+import { App,Form } from 'antd';
 import {
   LockOutlined,
   UserOutlined,
@@ -10,17 +10,36 @@ import {useRouter} from 'next/navigation';
 import {
   LoginForm,
   ProConfigProvider,
+  ProFormCaptcha,
   ProFormText,
 } from '@ant-design/pro-components';
 import { theme } from 'antd';
 import '@ant-design/v5-patch-for-react-19';
 import axios from 'axios'
-
 export default function ForgetPage(){
   const router=useRouter();
   const { message } = App.useApp();
 
   const { token } = theme.useToken();
+  const [form] =Form.useForm();
+
+  const [verificationCode, setVerificationCode] = React.useState<string | null>(null);
+
+  const sendVerificationCode = async (mail:string) => {
+    if(mail){
+      axios.post('http://localhost:5000/send-verification-code',{
+        email:mail
+      })
+      .then((res)=>{
+        setVerificationCode(res.data.verification_code);
+        console.log(`验证码已发送到邮箱: ${mail}, 验证码: ${res.data.verification_code}`);
+        message.success("验证码已发送");
+      })
+      .catch((err)=>{
+        message.error("发送失败");
+      })
+    }
+  }
 
   const handleSubmit = async (values:any) => {
     if(!values.username||!values.password||!values.mail){
@@ -29,6 +48,9 @@ export default function ForgetPage(){
     else{
       if(values.password.length<8){
         message.error("密码长度不能小于8")
+      }
+      else if(verificationCode!==values.captcha){
+        message.error("验证码错误")
       }
       else{
         axios.post("http://localhost:5000/register",{
@@ -61,6 +83,7 @@ export default function ForgetPage(){
           submitter={{
             searchConfig:{submitText: '注册'},
           }}
+          form={form}
           onFinish={handleSubmit}>
           <ProFormText
             name="username"
@@ -135,6 +158,35 @@ export default function ForgetPage(){
               }
             ]}
           />
+          <ProFormCaptcha
+                fieldProps={{
+                  size: 'large',
+                  prefix: <LockOutlined className={'prefixIcon'} />,
+                }}
+                captchaProps={{
+                  size: 'large',
+                }}
+                placeholder={'请输入验证码'}
+                captchaTextRender={(timing, count) => {
+                  if (timing) {
+                    return `${count} ${'获取验证码'}`;
+                  }
+                  return '获取验证码';
+                }}
+                name="captcha"
+                rules={[
+                  {
+                    required: true,
+                    message: '请输入验证码！',
+                  },
+                ]}
+                onGetCaptcha={async () => {
+                  const values = await form.validateFields();
+                  const mail = values.mail;
+                  console.log(mail);
+                  sendVerificationCode(mail);
+                }}
+              />
           <div
             style={{
               marginBlockEnd: 24,

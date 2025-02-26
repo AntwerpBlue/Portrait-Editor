@@ -7,6 +7,11 @@ import uuid
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 
+import smtplib
+import random
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 app = Flask(__name__)
 CORS(app)
 
@@ -54,6 +59,43 @@ def register():
     finally:
         conn.close()
     return jsonify({'message': 'User registered successfully'}), 200
+
+
+@app.route('/send-verification-code', methods=['POST'])
+def send_verification_code():
+    data = request.get_json()
+    email = data.get('email')
+    sender_account='ustc3dvttttest@163.com'
+    sender_pass='DEfLZ39hhXn6CxuQ'
+    verification_code = str(random.randint(100000, 999999))
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_account
+    msg['To'] = email
+    msg['Subject'] = 'Your Verification Code'
+
+    body = f'Your verification code is: {verification_code}'
+    msg.attach(MIMEText(body, 'plain'))
+    server = smtplib.SMTP('smtp.163.com', 25)
+    server.starttls()
+    server.login(sender_account, sender_pass)
+    server.sendmail(sender_account, email, msg.as_string())
+    server.quit()
+
+    return jsonify({'message': 'Verification code sent', 'verification_code': verification_code}), 200
+
+@app.route('/forget/reset', methods=['POST'])
+def reset_password():#UNFINISHED!!!!!!!!!
+    data = request.get_json()
+    email = data.get('email')
+    new_password = data.get('new_password')
+    verification_code = data.get('verification_code')
+
+    # 检查验证码是否正确
+    if verification_code != '123456':
+        return jsonify({'error': 'Invalid verification code'}), 400
+
+    # 更新密码
 
 @app.route('/uploadVideo', methods=['POST'])
 def upload_video():
