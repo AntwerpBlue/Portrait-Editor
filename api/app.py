@@ -65,6 +65,19 @@ def register():
 def send_verification_code():
     data = request.get_json()
     email = data.get('email')
+    username = data.get('username')
+    if not email or not username:
+        return jsonify({'error': 'Missing required fields'}), 400
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM user WHERE Mail = %s AND Name = %s', (email, username))
+            user = cursor.fetchone()
+            if not user:
+                return jsonify({'error': 'The mail and username do not match'}), 400
+    finally:
+        conn.close()
+
     sender_account='ustc3dvttttest@163.com'
     sender_pass='DEfLZ39hhXn6CxuQ'
     verification_code = str(random.randint(100000, 999999))
@@ -84,18 +97,26 @@ def send_verification_code():
 
     return jsonify({'message': 'Verification code sent', 'verification_code': verification_code}), 200
 
-@app.route('/forget/reset', methods=['POST'])
-def reset_password():#UNFINISHED!!!!!!!!!
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
     data = request.get_json()
+    userId= data.get('userId')
     email = data.get('email')
     new_password = data.get('new_password')
-    verification_code = data.get('verification_code')
 
-    # 检查验证码是否正确
-    if verification_code != '123456':
-        return jsonify({'error': 'Invalid verification code'}), 400
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM user WHERE Mail = %s AND UserID = %s', (email, userId))
+            user = cursor.fetchone()
+            if not user:
+                return jsonify({'error': 'User not found'}), 400
+            hashed_password = generate_password_hash(new_password)
+            cursor.execute('UPDATE user SET Password = %s WHERE Mail = %s AND UserID = %s', (hashed_password, email, userId))
+        conn.commit()
+    finally:
+        conn.close()
 
-    # 更新密码
 
 @app.route('/uploadVideo', methods=['POST'])
 def upload_video():

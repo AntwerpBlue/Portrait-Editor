@@ -15,7 +15,7 @@ import {useRouter} from 'next/navigation';
 import '@ant-design/v5-patch-for-react-19';
 import axios from 'axios';
 import { Form, theme, App } from 'antd';
-
+import { setCookie } from 'nookies';
 
 export default function ForgetPage(){
   const [form] =Form.useForm();
@@ -26,10 +26,11 @@ export default function ForgetPage(){
 
   const [verificationCode, setVerificationCode] = React.useState<string | null>(null);
 
-  const sendVerificationCode = async (mail:string) => {
-    if(mail){
+  const sendVerificationCode = async (mail:string,username:string) => {
+    if(mail&&username){
       axios.post('http://localhost:5000/send-verification-code',{
-        email:mail
+        email:mail,
+        username:username
       })
       .then((res)=>{
         setVerificationCode(res.data.verification_code);
@@ -37,8 +38,11 @@ export default function ForgetPage(){
         message.success("验证码已发送");
       })
       .catch((err)=>{
-        message.error("发送失败");
+        message.error(err.response.data.error);
       })
+    }
+    else{
+      message.error("信息不完整，请重新输入");
     }
   }
 
@@ -51,7 +55,19 @@ export default function ForgetPage(){
         message.error("验证码错误")
       }
       else{
-        router.push('/forget/reset');/////FIX TO TRANSFER MESSAGE TO RESET PAGE
+        setCookie(
+          null, 'username', values.username, {
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+          }
+        );
+        setCookie(
+          null, 'mail', values.mail, {
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+          }
+        )
+        router.push('/forget/reset');
       }
     }
   }
@@ -119,10 +135,16 @@ export default function ForgetPage(){
                   },
                 ]}
                 onGetCaptcha={async () => {
-                  const values = await form.validateFields();
-                  const mail = values.mail;
-                  console.log(mail);
-                  sendVerificationCode(mail);
+                  try{
+                    const values = await form.validateFields();
+                    const mail = values.mail;
+                    const username = values.username;
+                    console.log(mail);
+                    await sendVerificationCode(mail,username);
+                  }catch(error){////////////////////////////////FIXME: CANNOT CATCH
+                    console.error('发送验证码失败:', error);
+                    throw error;
+                  }
                 }}
               />
           <div

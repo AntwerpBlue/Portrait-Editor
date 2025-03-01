@@ -11,9 +11,22 @@ import {
 import {useRouter} from 'next/navigation';
 import axios from 'axios';
 import { Form, theme, App } from 'antd';
+import {parseCookies, destroyCookie} from 'nookies';
+import { GetServerSidePropsContext } from 'next';
 
+export const getServerSideProps = (context:GetServerSidePropsContext) => {
+  const cookies = parseCookies(context);
+  const userId = cookies.userId;
+  const email = cookies.email;
+  return {
+    props: {
+      userId,
+      email,
+    },
+  };
+};
 
-export default function ForgetPage(){
+export default function ForgetPage({userId,email}:any){
   const router=useRouter();
   const { message } = App.useApp();
   const { token } = theme.useToken();
@@ -24,7 +37,20 @@ export default function ForgetPage(){
       return;
     }
     else{
-        axios.post()
+        axios.post('http://localhost:5000/reset-password',{
+          userId:{userId},
+          email:{email},
+          new_password:values.password
+        })
+        .then(res=>{
+          message.success('密码修改成功');
+          destroyCookie(null, 'userId');
+          destroyCookie(null, 'email');
+          router.push('/login');
+        })
+        .catch(err=>{
+          message.error('密码修改失败');
+        })
     }
   }
 

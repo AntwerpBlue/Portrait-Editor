@@ -12,6 +12,7 @@ import {
   ProFormText,
   setAlpha,
 } from '@ant-design/pro-components';
+import '@ant-design/v5-patch-for-react-19';
 import { Form, theme } from 'antd';
 import { useState } from 'react';
 
