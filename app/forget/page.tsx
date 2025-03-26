@@ -25,24 +25,30 @@ export default function ForgetPage(){
   const { token } = theme.useToken();
 
   const [verificationCode, setVerificationCode] = React.useState<string | null>(null);
+  const [captchaLoading, setCaptchaLoading] = React.useState(false); // 新增加载状态
 
   const sendVerificationCode = async (mail:string,username:string) => {
-    if(mail&&username){
-      axios.post('http://localhost:5000/send-verification-code',{
-        email:mail,
-        username:username
-      })
-      .then((res)=>{
-        setVerificationCode(res.data.verification_code);
-        console.log(`验证码已发送到邮箱: ${mail}, 验证码: ${res.data.verification_code}`);
-        message.success("验证码已发送");
-      })
-      .catch((err)=>{
-        message.error(err.response.data.error);
-      })
-    }
-    else{
+    if (!mail || !username) {
       message.error("信息不完整，请重新输入");
+      return false;
+    }
+    try{
+      setCaptchaLoading(true);
+      const res= await axios.post('http://localhost:5000/send-verification-code',{
+        email:mail,
+        username:username,
+        type:'forget'
+      })
+      setVerificationCode(res.data.verification_code);
+      console.log(`验证码已发送到邮箱: ${mail}, 验证码: ${res.data.verification_code}`);
+      message.success("验证码已发送");
+      return true;
+    }
+    catch (err){
+      message.error((err as any).response?.data?.message || "验证码发送失败");
+      return false; // 发送失败返回false
+    } finally {
+      setCaptchaLoading(false);
     }
   }
 
@@ -136,16 +142,21 @@ export default function ForgetPage(){
                 ]}
                 onGetCaptcha={async () => {
                   try{
-                    const values = await form.validateFields();
-                    const mail = values.mail;
-                    const username = values.username;
+                    await form.validateFields(['mail']);
+                    const mail = form.getFieldValue('mail') as string;
+                    const username = form.getFieldValue('username') as string;
                     console.log(mail);
-                    await sendVerificationCode(mail,username);
+                    const success = await sendVerificationCode(mail, username);
+                    if (!success) {
+                  // 如果发送失败，抛出错误阻止计时开始
+                  throw new Error('验证码发送失败');
+                }
                   }catch(error){////////////////////////////////FIXME: CANNOT CATCH
                     console.error('发送验证码失败:', error);
                     throw error;
                   }
                 }}
+                disabled={captchaLoading} // 添加加载状态禁用
               />
           <div
             style={{

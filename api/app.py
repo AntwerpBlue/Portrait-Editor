@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify
+from flask_jwt_extended import (
+    JWTManager, create_access_token, 
+    jwt_required, get_jwt_identity, create_refresh_token
+)
+import datetime
 from flask_cors import CORS
 import os
 import re
 import pymysql
 import uuid
 from datetime import datetime
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash,check_password_hash
 
 import smtplib
 import random
@@ -14,6 +19,13 @@ from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 CORS(app)
+
+
+######配置信息不能硬编码在代码中，需要放到配置文件中#######
+
+app.config['JWT_SECRET_KEY'] = '3fa85f64-5717-4562-b3fc-2c963f66afa6'  # 生产环境请使用更复杂的密钥
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
+jwt = JWTManager(app)
 
 UPLOAD_FOLDER='./files'
 if not os.path.exists(UPLOAD_FOLDER):
@@ -26,6 +38,8 @@ db_config={
     'password': 'QAQ122133122wzc',
     'database': 'portrait_editor',
 }
+
+#############################################################################
 
 def is_email_valid(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$'
@@ -47,7 +61,7 @@ def register():
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM user WHERE Mail = %s', (mail))
+            cursor.execute('SELECT * FROM user WHERE Mail = %s', (mail,))
             user = cursor.fetchone()
             if user:
                 return jsonify({'error': 'The mail has been registered'}), 400
@@ -56,9 +70,14 @@ def register():
             hashed_password = generate_password_hash(password)
             cursor.execute('INSERT INTO user (Name, Password, UserID, Mail) VALUES (%s, %s, %s, %s)', (username, hashed_password, id+1, mail))
         conn.commit()
+        return jsonify({'success': True, 'message': 'User registered successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        app.logger.error(f"Registration error: {str(e)}")
+        return jsonify({'success': False, 'error': 'Registration failed'}), 500
     finally:
         conn.close()
-    return jsonify({'message': 'User registered successfully'}), 200
+
 
 
 @app.route('/send-verification-code', methods=['POST'])
@@ -66,15 +85,17 @@ def send_verification_code():
     data = request.get_json()
     email = data.get('email')
     username = data.get('username')
-    if not email or not username:
+    flag= data.get('type')
+    if not email or (flag=='forget' and not username):
         return jsonify({'error': 'Missing required fields'}), 400
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM user WHERE Mail = %s AND Name = %s', (email, username))
-            user = cursor.fetchone()
-            if not user:
-                return jsonify({'error': 'The mail and username do not match'}), 400
+            if flag=='forget':
+                cursor.execute('SELECT * FROM user WHERE Mail = %s AND Name = %s', (email, username))
+                user = cursor.fetchone()
+                if not user:
+                    return jsonify({'error': 'The mail and username do not match'}), 400
     finally:
         conn.close()
 
@@ -116,6 +137,91 @@ def reset_password():
         conn.commit()
     finally:
         conn.close()
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    auto_login = data.get('autoLogin',False)
+
+    # 验证输入
+    if not username or not password:
+        return jsonify({'success': False, 'message': '用户名和密码不能为空'}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 查找用户（支持用户名或邮箱登录）
+            cursor.execute('SELECT * FROM user WHERE Name = %s AND Mail = %s', (username, username))
+            user = cursor.fetchone()
+            
+            if not user:
+                return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
+
+            # 验证密码
+            if not check_password_hash(user['Password'], password):
+                return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
+
+            # 创建JWT token
+            identity = {
+                'user_id': user['UserID'],
+                'username': user['Name'],
+                'email': user['Mail']
+            }
+            
+            access_token = create_access_token(identity=identity)
+            refresh_token = create_refresh_token(identity=identity)
+            
+            response_data = {
+                'success': True,
+                'message': '登录成功',
+                'token': access_token,
+                'user': {
+                    'id': user['UserID'],
+                    'username': user['Name'],
+                    'email': user['Mail']
+                }
+            }
+            
+            # 只有在自动登录时才返回refresh token
+            if auto_login:
+                response_data['refreshToken'] = refresh_token
+            
+            return jsonify(response_data)
+    except Exception as e:
+        app.logger.error(f"Login error: {str(e)}")
+        return jsonify({'success': False, 'message': '服务器错误'}), 500
+    finally:
+        conn.close()
+
+@app.route('/refresh-token', methods=['POST'])
+@jwt_required(refresh=True)  # 只接受refresh token
+def refresh_token():
+    try:
+        current_user = get_jwt_identity()
+        new_token = create_access_token(identity=current_user)
+        
+        return jsonify({
+            'success': True,
+            'token': new_token,
+            'user': current_user
+        })
+    except Exception as e:
+        app.logger.error(f"Refresh token error: {str(e)}")
+        return jsonify({'success': False, 'message': 'Token刷新失败'}), 401
+
+@app.route('/api/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify({
+        'success': True,
+        'message': f'欢迎 {current_user["username"]}',
+        'user': current_user
+    })
+
+
 
 
 @app.route('/uploadVideo', methods=['POST'])

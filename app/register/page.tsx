@@ -28,7 +28,8 @@ export default function ForgetPage(){
   const sendVerificationCode = async (mail:string) => {
     if(mail){
       axios.post('http://localhost:5000/send-verification-code',{
-        email:mail
+        email:mail,
+        type:"register"
       })
       .then((res)=>{
         setVerificationCode(res.data.verification_code);
@@ -105,7 +106,7 @@ export default function ForgetPage(){
               size: 'large',
               prefix: <LockOutlined className={'prefixIcon'} />,
               strengthText:
-                'Password should contain numbers, letters and special characters, at least 8 characters long.',
+                'Password is recommended to contain numbers, letters and special characters, at least 8 characters long.',
               statusRender: (value) => {
                 const getStatus = () => {
                   if (value && value.length > 12) {
@@ -142,6 +143,29 @@ export default function ForgetPage(){
                 required: true,
                 message: '请输入密码！',
               },
+            ]}
+          />
+          <ProFormText.Password
+            name="confirmPassword"
+            fieldProps={{
+              size: 'large',
+              prefix: <LockOutlined className={'prefixIcon'} />,
+            }}
+            placeholder={'请确认密码'}
+            dependencies={['password']}
+            rules={[
+              {
+                required: true,
+                message: '请确认密码！',
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('两次输入的密码不一致!'));
+                },
+              }),
             ]}
           />
           <ProFormText 
@@ -181,10 +205,15 @@ export default function ForgetPage(){
                   },
                 ]}
                 onGetCaptcha={async () => {
-                  const values = await form.validateFields();
-                  const mail = values.mail;
-                  console.log(mail);
-                  sendVerificationCode(mail);
+                  try{
+                    await form.validateFields(['mail']);
+                    const mail = form.getFieldValue('mail');
+                    console.log(mail);
+                    sendVerificationCode(mail);
+                  }catch (error){
+                    console.log(error);
+                  }
+                  
                 }}
               />
           <div
