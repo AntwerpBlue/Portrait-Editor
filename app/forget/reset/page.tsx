@@ -9,24 +9,13 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import {useRouter} from 'next/navigation';
-import axios from 'axios';
+import axios,{AxiosError} from 'axios';
 import { Form, theme, App } from 'antd';
-import {parseCookies, destroyCookie} from 'nookies';
-import { GetServerSidePropsContext } from 'next';
 
-export const getServerSideProps = (context:GetServerSidePropsContext) => {
-  const cookies = parseCookies(context);
-  const userId = cookies.userId;
-  const email = cookies.email;
-  return {
-    props: {
-      userId,
-      email,
-    },
-  };
-};
+import '@ant-design/v5-patch-for-react-19';
 
-export default function ForgetPage({userId,email}:any){
+
+export default function ForgetPage(){
   const router=useRouter();
   const { message } = App.useApp();
   const { token } = theme.useToken();
@@ -37,20 +26,27 @@ export default function ForgetPage({userId,email}:any){
       return;
     }
     else{
-        axios.post('http://localhost:5000/reset-password',{
-          userId:{userId},
-          email:{email},
+      try{
+        const res=await axios.post('http://localhost:5000/api/forget/reset',{
           new_password:values.password
-        })
-        .then(res=>{
-          message.success('密码修改成功');
-          destroyCookie(null, 'userId');
-          destroyCookie(null, 'email');
-          router.push('/login');
-        })
-        .catch(err=>{
-          message.error('密码修改失败');
-        })
+        },{
+          withCredentials:true
+        });
+        message.success('密码修改成功');
+        router.push('/login');
+      }
+      catch(error){
+        if (axios.isAxiosError(error) && error.response) {
+          // 明确 error.response.data 的结构
+          const errorMessage = error.response.data?.error || "未知错误";
+          console.error("后端错误:", errorMessage);
+          alert(`错误: ${errorMessage}`);
+        } else {
+          // 其他类型的错误（如网络错误）
+          console.error("请求失败:", error instanceof Error ? error.message : "未知错误");
+          alert("网络请求失败");
+        }
+      }
     }
   }
 

@@ -27,7 +27,7 @@ export default function ForgetPage(){
 
   const sendVerificationCode = async (mail:string) => {
     if(mail){
-      axios.post('http://localhost:5000/send-verification-code',{
+      axios.post('http://localhost:5000/api/send-code',{
         email:mail,
         type:"register"
       })

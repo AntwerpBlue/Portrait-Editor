@@ -1,15 +1,16 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_jwt_extended import (
     JWTManager, create_access_token, 
     jwt_required, get_jwt_identity, create_refresh_token
 )
-import datetime
+import jwt
 from flask_cors import CORS
 import os
 import re
 import pymysql
+import pymysql.cursors
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash,check_password_hash
 
 import smtplib
@@ -18,14 +19,25 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,
+     resources={
+        r"/api/*": {
+            "origins": ["http://localhost:3000", "https://your-production-domain.com"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Authorization", "Content-Type"],
+            "supports_credentials": True,  # 允许携带 Cookie
+            "expose_headers": ["Set-Cookie"]
+        }
+    })
 
 
 ######配置信息不能硬编码在代码中，需要放到配置文件中#######
 
 app.config['JWT_SECRET_KEY'] = '3fa85f64-5717-4562-b3fc-2c963f66afa6'  # 生产环境请使用更复杂的密钥
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)
-jwt = JWTManager(app)
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_COOKIE_SECURE"] = True  # 仅 HTTPS
+app.config["JWT_COOKIE_CSRF_PROTECT"] = True  # 启用 CSRF 保护
+jwt_manager = JWTManager(app)
 
 UPLOAD_FOLDER='./files'
 if not os.path.exists(UPLOAD_FOLDER):
@@ -37,6 +49,7 @@ db_config={
     'user': 'root',
     'password': 'QAQ122133122wzc',
     'database': 'portrait_editor',
+    'cursorclass': pymysql.cursors.DictCursor
 }
 
 #############################################################################
@@ -48,7 +61,33 @@ def is_email_valid(email):
 def get_db_connection():
     return pymysql.connect(**db_config)
 
-@app.route('/register', methods=['POST'])
+
+# 生成重置 Token（JWT 实现）
+def generate_reset_token(email):
+    return jwt.encode(
+        {
+            "email": email,
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=10)
+        },
+        app.config["JWT_SECRET_KEY"],
+        algorithm="HS256"
+    )
+
+# 验证 Token
+def verify_reset_token(token):
+    try:
+        data = jwt.decode(
+            token,
+            app.config["JWT_SECRET_KEY"],
+            algorithms=["HS256"]
+        )
+        return data["email"]
+    except:
+        return None
+
+
+
+@app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data.get('username')
@@ -79,19 +118,18 @@ def register():
         conn.close()
 
 
-
-@app.route('/send-verification-code', methods=['POST'])
+@app.route('/api/send-code', methods=['POST'])
 def send_verification_code():
     data = request.get_json()
     email = data.get('email')
     username = data.get('username')
     flag= data.get('type')
-    if not email or (flag=='forget' and not username):
+    if not email or (flag == 'forget' and not username):
         return jsonify({'error': 'Missing required fields'}), 400
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            if flag=='forget':
+            if flag == 'forget':
                 cursor.execute('SELECT * FROM user WHERE Mail = %s AND Name = %s', (email, username))
                 user = cursor.fetchone()
                 if not user:
@@ -116,84 +154,72 @@ def send_verification_code():
     server.sendmail(sender_account, email, msg.as_string())
     server.quit()
 
-    return jsonify({'message': 'Verification code sent', 'verification_code': verification_code}), 200
+    resp=make_response(jsonify({'message': 'Verification code sent', 'verification_code': verification_code}))
 
-@app.route('/reset-password', methods=['POST'])
+    if flag=='forget':
+        token=generate_reset_token(email)
+        resp.set_cookie(
+            "reset_token",
+            token,
+            max_age=600,  # 10分钟
+        )
+
+    return resp
+
+@app.route('/api/forget/reset', methods=['POST'])
 def reset_password():
+    token= request.cookies.get("reset_token") 
     data = request.get_json()
-    userId= data.get('userId')
-    email = data.get('email')
     new_password = data.get('new_password')
+
+    if not token:
+        return jsonify({"error": "Token 已过期"}), 401
+
+    email = verify_reset_token(token)
+    if not email:
+        return jsonify({"error": "无效 Token"}), 401
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM user WHERE Mail = %s AND UserID = %s', (email, userId))
+            cursor.execute('SELECT * FROM user WHERE Mail = %s', (email))
             user = cursor.fetchone()
             if not user:
                 return jsonify({'error': 'User not found'}), 400
             hashed_password = generate_password_hash(new_password)
-            cursor.execute('UPDATE user SET Password = %s WHERE Mail = %s AND UserID = %s', (hashed_password, email, userId))
+            cursor.execute('UPDATE user SET Password = %s WHERE Mail = %s', (hashed_password, email))
         conn.commit()
     finally:
         conn.close()
 
-@app.route('/login', methods=['POST'])
+    resp = make_response(jsonify({"success": True}))
+    resp.delete_cookie("reset_token")
+    return resp
+
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    auto_login = data.get('autoLogin',False)
 
     # 验证输入
     if not username or not password:
         return jsonify({'success': False, 'message': '用户名和密码不能为空'}), 400
 
     conn = get_db_connection()
-    try:
-        with conn.cursor() as cursor:
-            # 查找用户（支持用户名或邮箱登录）
-            cursor.execute('SELECT * FROM user WHERE Name = %s AND Mail = %s', (username, username))
-            user = cursor.fetchone()
-            
-            if not user:
-                return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
+    with conn.cursor() as cursor:
+        # 查找用户（支持用户名或邮箱登录）
+        cursor.execute('SELECT * FROM user WHERE Name = %s', (username))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
 
-            # 验证密码
-            if not check_password_hash(user['Password'], password):
-                return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
-
-            # 创建JWT token
-            identity = {
-                'user_id': user['UserID'],
-                'username': user['Name'],
-                'email': user['Mail']
-            }
-            
-            access_token = create_access_token(identity=identity)
-            refresh_token = create_refresh_token(identity=identity)
-            
-            response_data = {
-                'success': True,
-                'message': '登录成功',
-                'token': access_token,
-                'user': {
-                    'id': user['UserID'],
-                    'username': user['Name'],
-                    'email': user['Mail']
-                }
-            }
-            
-            # 只有在自动登录时才返回refresh token
-            if auto_login:
-                response_data['refreshToken'] = refresh_token
-            
-            return jsonify(response_data)
-    except Exception as e:
-        app.logger.error(f"Login error: {str(e)}")
-        return jsonify({'success': False, 'message': '服务器错误'}), 500
-    finally:
-        conn.close()
+        # 验证密码
+        if not check_password_hash(user['Password'], password):
+            return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
+        return jsonify({'success': True, 'message': '登录成功', 'user': {'username': user['Name'], 'mail': user['Mail']}}), 200
+    conn.close()
 
 @app.route('/refresh-token', methods=['POST'])
 @jwt_required(refresh=True)  # 只接受refresh token

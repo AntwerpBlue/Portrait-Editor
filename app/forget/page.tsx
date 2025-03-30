@@ -15,7 +15,6 @@ import {useRouter} from 'next/navigation';
 import '@ant-design/v5-patch-for-react-19';
 import axios from 'axios';
 import { Form, theme, App } from 'antd';
-import { setCookie } from 'nookies';
 
 export default function ForgetPage(){
   const [form] =Form.useForm();
@@ -34,11 +33,11 @@ export default function ForgetPage(){
     }
     try{
       setCaptchaLoading(true);
-      const res= await axios.post('http://localhost:5000/send-verification-code',{
+      const res= await axios.post('http://localhost:5000/api/send-code',{
         email:mail,
         username:username,
-        type:'forget'
-      })
+        type:"forget"
+      },{withCredentials:true})
       setVerificationCode(res.data.verification_code);
       console.log(`验证码已发送到邮箱: ${mail}, 验证码: ${res.data.verification_code}`);
       message.success("验证码已发送");
@@ -61,19 +60,7 @@ export default function ForgetPage(){
         message.error("验证码错误")
       }
       else{
-        setCookie(
-          null, 'username', values.username, {
-            maxAge: 7 * 24 * 60 * 60,
-            path: '/',
-          }
-        );
-        setCookie(
-          null, 'mail', values.mail, {
-            maxAge: 7 * 24 * 60 * 60,
-            path: '/',
-          }
-        )
-        router.push('/forget/reset');
+        router.push('/forget/reset');///FIXME: should be dynamic
       }
     }
   }
@@ -85,7 +72,7 @@ export default function ForgetPage(){
           title="中科大3DV课题组"
           subTitle="输入用户名与邮箱以重置密码"
           submitter={{
-            searchConfig:{submitText: '发送邮件'},
+            searchConfig:{submitText: '修改密码'},
           }}
           form={form}
           onFinish={handleSubmit}
