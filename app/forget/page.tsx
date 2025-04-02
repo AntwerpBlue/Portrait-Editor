@@ -4,6 +4,7 @@ import {
   LockOutlined,
   MailOutlined,
   UserOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import {
   LoginForm,
@@ -14,7 +15,7 @@ import {
 import {useRouter} from 'next/navigation';
 import '@ant-design/v5-patch-for-react-19';
 import axios from 'axios';
-import { Form, theme, App } from 'antd';
+import { Form, theme, App, Button } from 'antd';
 
 export default function ForgetPage(){
   const [form] =Form.useForm();
@@ -68,6 +69,19 @@ export default function ForgetPage(){
   return (
     <ProConfigProvider hashed={false}>
       <div style={{ backgroundColor: token.colorBgContainer }}>
+      <Button 
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => router.push('/dashboard')}
+          style={{
+            position: 'absolute',
+            left: 24,
+            top: 24,
+            zIndex: 1
+          }}
+        >
+          返回主页
+        </Button>
         <LoginForm 
           title="中科大3DV课题组"
           subTitle="输入用户名与邮箱以重置密码"

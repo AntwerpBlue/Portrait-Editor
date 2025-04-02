@@ -1,10 +1,11 @@
 "use client"
 import React from 'react';
-import { App,Form } from 'antd';
+import { App,Form, Button} from 'antd';
 import {
   LockOutlined,
   UserOutlined,
-  MailOutlined
+  MailOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import {useRouter} from 'next/navigation';
 import {
@@ -78,6 +79,19 @@ export default function ForgetPage(){
   return (
     <ProConfigProvider hashed={false}>
       <div style={{ backgroundColor: token.colorBgContainer }}>
+      <Button 
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => router.push('/dashboard')}
+          style={{
+            position: 'absolute',
+            left: 24,
+            top: 24,
+            zIndex: 1
+          }}
+        >
+          返回主页
+        </Button>
         <LoginForm 
           title="中科大3DV课题组" 
           subTitle="请输入正确的邮箱，如忘记密码将发送邮件到该邮箱" 
@@ -221,6 +235,14 @@ export default function ForgetPage(){
               marginBlockEnd: 24,
             }}
           >
+            <a
+              style={{
+                float: 'right',
+              }}
+              href={'/login'}
+            >
+              返回登录
+            </a>
           </div>
         </LoginForm>
       </div>

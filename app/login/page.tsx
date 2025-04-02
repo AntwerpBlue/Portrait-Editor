@@ -2,15 +2,15 @@
 import {
   LockOutlined,
   UserOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import {
   LoginForm,
   ProConfigProvider,
   ProFormText,
-  ProFormCheckbox,
 } from '@ant-design/pro-components';
 import '@ant-design/v5-patch-for-react-19';
-import { App, Form, theme } from 'antd';
+import { App, Form, theme,Button } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -39,6 +39,7 @@ export default function loginPage(){
 
       // 处理登录成功
       if (response.data.success) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         // 登录成功，跳转到主页
         router.push('/dashboard');
       }
@@ -57,7 +58,20 @@ export default function loginPage(){
   
   return (
     <ProConfigProvider hashed={false}>
-      <div style={{ backgroundColor: token.colorBgContainer }}>
+      <div style={{ backgroundColor: token.colorBgContainer,position: 'relative' }}>
+      <Button 
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => router.push('/dashboard')}
+          style={{
+            position: 'absolute',
+            left: 24,
+            top: 24,
+            zIndex: 1
+          }}
+        >
+          返回主页
+        </Button>
         <LoginForm 
             title="中科大3DV课题组" 
             subTitle="首次登录请注册"

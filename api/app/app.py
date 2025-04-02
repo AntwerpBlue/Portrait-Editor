@@ -323,6 +323,5 @@ def get_submit():
             connection.close()
     return jsonify({'message': 'Submit successful'}), 200
 
-
 if __name__ == '__main__':
     app.run(debug=True)
