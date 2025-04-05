@@ -17,6 +17,7 @@
     "ant-design": "^1.0.0",
     "antd": "^5.22.7",
     "axios": "^1.7.9",
+    "file-saver": "^2.0.5",
     "flask": "^0.2.10",
     "next": "15.1.2",
     "nodemailer": "^6.9.16",
@@ -27,6 +28,7 @@
     "react-router-dom": "^7.1.1",
     "redux": "^5.0.1",
     "uuid": "^11.0.3",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

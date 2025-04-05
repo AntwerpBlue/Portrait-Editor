@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response,send_from_directory
 from flask_jwt_extended import (
     JWTManager, create_access_token, 
     jwt_required, get_jwt_identity
@@ -12,11 +12,12 @@ import pymysql.cursors
 import uuid
 from datetime import datetime, timedelta, timezone
 from werkzeug.security import generate_password_hash,check_password_hash
-
+from werkzeug.exceptions import BadRequest, NotFound
 import smtplib
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import click
 
 app = Flask(__name__)
 CORS(app,
@@ -220,7 +221,7 @@ def login():
         # 验证密码
         if not check_password_hash(user['Password'], password):
             return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
-        return jsonify({'success': True, 'message': '登录成功', 'user': {'username': user['Name'], 'mail': user['Mail']}}), 200
+        return jsonify({'success': True, 'message': '登录成功', 'user': {'username': user['Name'],'user_id': user['UserID'], 'mail': user['Mail'], 'isAdmin': user['IsAdmin']}}), 200
     conn.close()
 
 @app.route('/refresh-token', methods=['POST'])
@@ -250,6 +251,15 @@ def protected():
     })
 
 
+@app.route('/check-user', methods=['POST'])
+def check_user():
+    user_id=request.form.get('user_id')
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT COUNT(*) FROM request WHERE UserID = %s AND Status = %s', (user_id, 'processing'))
+        count=cursor.fetchone()[0]
+        return jsonify({'processing': count, 'user_id': user_id})
+    conn.close()
 
 
 @app.route('/uploadVideo', methods=['POST'])
@@ -323,6 +333,64 @@ def get_submit():
             connection.close()
     return jsonify({'message': 'Submit successful'}), 200
 
+
+
+
+
+
+
+
+@app.route('/api/get-projects',methods=['POST'])
+def get_projects():
+    user_id = request.get_json().get('user_id')
+    print(user_id)
+    conn=get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT ProjectID, Name, ThumbNail, Status, UploadTime, CompleteTime, VideoURL FROM request WHERE UserID = %s 
+                ORDER BY UploadTime
+                """, (user_id,))
+            projects = cursor.fetchall()
+            if projects:
+                return jsonify(projects)
+            else:
+                return jsonify({'error': 'No projects found for this user'}),400
+    finally:
+        conn.close()
+
+@app.route('/api/rename-project',methods=['POST'])
+def rename_project():
+    project_id = request.get_json().get('project_id')
+    new_name = request.get_json().get('new_name')
+    conn=get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                UPDATE request SET Name = %s WHERE ProjectID = %s
+                """, (new_name, project_id))
+            conn.commit()
+            return jsonify({'message': 'Project renamed successfully'})
+    finally:
+        conn.close()
+
+@app.route('/api/delete-project',methods=['POST'])
+def delete_project():
+    project_id = request.form.get('project_id')
+    conn=get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                DELETE FROM request WHERE ProjectID = %s
+                """, (project_id))
+            conn.commit()
+            return jsonify({'message': 'Project deleted successfully'})
+    finally:
+        conn.close()
+
+@app.route('/api/videos/<filename>')
+def serve_video(filename):
+    return send_from_directory('videos', filename)  # 'videos' 是视频目录名
 
 if __name__ == '__main__':
     app.run(debug=True)

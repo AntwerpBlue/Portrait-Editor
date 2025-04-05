@@ -1,6 +1,6 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { ProList } from '@ant-design/pro-components';
-import { Badge, Button, Image, message, Popconfirm, Tag } from 'antd';
+import { Drawer,Modal, Button, Image, message, Popconfirm, Tag } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -15,55 +15,100 @@ interface VideoProject {
   videoUrl: string | null;
 }
 
-const ResultPage: React.FC = () => {
+function convertToVideoProject(data: any): VideoProject {
+  return {
+    id: data.ProjectID,
+    name: data.Name,
+    thumbnail: data.ThumbNail,
+    status: data.Status as 'processing' | 'completed' | 'failed',
+    submitTime: data.UploadTime,
+    completeTime: data.CompleteTime,
+    videoUrl: data.VideoURL
+  };
+}
+
+interface ResultProps {
+  onNavigateToUpload: () => void
+}
+
+const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) => {
+  const [messageApi, contextHolder] = message.useMessage(); // 新增这行
   const [projects, setProjects] = useState<VideoProject[]>([]);
   const [loading, setLoading] = useState(false);
+  const [changeFlag, setchangeFlage] = useState(false);
+  const [filteredProjects, setFilteredProjects] = useState<VideoProject[]>([]); // 新增：存储过滤后的数据
   const action = useRef<ActionType>(null);
+
+  const user= JSON.parse(localStorage.getItem('user')||'{}');
 
   // 从后端API获取用户视频项目数据
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:5000/api/get-projects');
-        setProjects(response.data);
+        console.log(user.user_id);
+        const response = await axios.post('http://localhost:5000/api/get-projects',{
+          user_id: user.user_id
+        });
+        setProjects(response.data.map(convertToVideoProject));
+        setFilteredProjects(response.data.map(convertToVideoProject));
       } catch (error) {
-        message.error('获取项目列表失败');
+        messageApi.error('获取项目列表失败');
       } finally {
         setLoading(false);
       }
     };
     
     fetchProjects();
-  }, []);
+  }, [user.user_id, changeFlag]);
+
+  const handleSearch = (value: string) => {
+    if (!value.trim()) {
+      setFilteredProjects(projects); // 如果搜索词为空，显示全部数据
+      return;
+    }
+    const filtered = projects.filter((project) =>
+      project.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredProjects(filtered);
+  };
 
   // 处理重命名
   const handleRename = async (id: string, newName: string) => {
     try {
-      await axios.patch(`/api/video-projects/${id}`, { name: newName });
+      await axios.post('http://localhost:5000/api/rename-project',{
+        project_id: id,
+        new_name: newName
+      });
       setProjects(projects.map(p => p.id === id ? {...p, name: newName} : p));
-      message.success('重命名成功');
+      setchangeFlage(!changeFlag);
+      messageApi.success('重命名成功');
     } catch (error) {
-      message.error('重命名失败');
+      messageApi.error('重命名失败');
     }
   };
 
   // 处理删除
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`/api/video-projects/${id}`);
+      await axios.post('http://localhost:5000/api/delete-project',{
+        project_id: id,
+      });
       setProjects(projects.filter(p => p.id !== id));
-      message.success('删除成功');
+      setchangeFlage(!changeFlag);
+      messageApi.success('删除成功');
     } catch (error) {
-      message.error('删除失败');
+      messageApi.error('删除失败');
     }
   };
 
   return (
+    <>
+      {contextHolder}
     <ProList<VideoProject>
       rowKey="id"
       actionRef={action}
-      dataSource={projects}
+      dataSource={filteredProjects}
       loading={loading}
       pagination={{
         pageSize: 10,
@@ -71,7 +116,10 @@ const ResultPage: React.FC = () => {
       metas={{
         title: {
           dataIndex: 'name',
-          //editable: true,
+          editable:  (text, record, index) => {
+            // 只有特定状态的项目可编辑
+            return record.status !== 'failed';
+          },
           render: (text, record) => (
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <span>{text}</span>
@@ -88,7 +136,7 @@ const ResultPage: React.FC = () => {
           dataIndex: 'thumbnail',
           render: (text) => (
             <Image
-              //src={text}
+              src={"https://img1.ali213.net/glpic/2019/08/02/584_20190802115314395.jpg"}
               width={80}
               height={60}
               style={{ borderRadius: 4 }}
@@ -126,8 +174,10 @@ const ResultPage: React.FC = () => {
               key="view" 
               type="link"
               onClick={() => {
+                console.log("按钮被点击");
                 if (record.videoUrl) {
-                  window.open(record.videoUrl, '_blank');
+                  const url="http://localhost:5000/api/videos/"+record.videoUrl+".mp4"
+                  window.open(url, '_blank');
                 } else {
                   message.info('视频尚未处理完成');
                 }
@@ -166,20 +216,19 @@ const ResultPage: React.FC = () => {
         search: {
           placeholder: '搜索项目名称',
           onSearch: (value: string) => {
-            // 实现搜索功能
+            handleSearch(value);
             console.log('搜索:', value);
           },
         },
         actions: [
-          <Button type="primary" key="primary" onClick={() => {
-            // 跳转到新建项目页面
-            window.location.href = '/video-editor/new';
-          }}>
+          <Button type="primary" key="primary" onClick={onNavigateToUpload}>
             新建项目
           </Button>,
         ],
       }}
-    />
+    >
+  </ProList>
+  </>
   );
 };
 

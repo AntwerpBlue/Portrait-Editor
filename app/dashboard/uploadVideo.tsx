@@ -1,8 +1,9 @@
-import React from 'react';
+import React,{useState} from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { message, Upload } from 'antd';
 import axios from 'axios';
+import { LoginPromptModal } from '../../components/LoginPromptModal';
 
 const { Dragger } = Upload;
 
@@ -11,10 +12,11 @@ interface UploadVideoProps {
 }
 
 const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const props: UploadProps = {
     name: 'file',
     multiple: false,
-  
+    maxCount: 1,
     customRequest(options){
       const formData = new FormData();
       formData.append('file', options.file);
@@ -29,7 +31,25 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
         });
     },
   
-    beforeUpload(file) {
+    beforeUpload:async (file)=>{
+      const token=localStorage.getItem('user');
+      if(!token){
+        setShowLoginModal(true);
+        return false;
+      }
+      else{
+        const user = JSON.parse(token).user_id;
+        try{
+          const res=await axios.post('http://localhost:5000/check-user', { user_id: user });
+          if(res.data.processing>=3){
+            message.error('You can create 3 projects at most at a time!');
+            return false;
+          }
+        }
+        catch(err){
+          console.log(err);
+        }
+      }
       const isVideo = file.type === 'video/mp4';
       if (!isVideo) {
         message.error('You can only upload mp4 file!');
@@ -53,6 +73,7 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
     },
   };
     return (
+      <>
     <Dragger {...props}>
         <p className="ant-upload-drag-icon">
         <InboxOutlined />
@@ -63,6 +84,11 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
         banned files.
         </p>
     </Dragger>
+    <LoginPromptModal
+            open={showLoginModal}
+            onCancel={() => setShowLoginModal(false)}
+          />  
+      </>
 )};
 
 export default UploadVideo;

@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import UploadPage from './upload'
 import ContactPage from './contact'
 import ResultPage from './result'
+import AdminDashboard from './adminDashboard'
 import { useRouter } from 'next/navigation';
 
 import {
@@ -16,7 +17,9 @@ import {
   UserOutlined,
   VideoCameraOutlined,
   LogoutOutlined,
-  LoginOutlined
+  LoginOutlined,
+  MessageOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme, Space, Typography, Avatar } from 'antd';
 import { LoginPromptModal } from '../../components/LoginPromptModal';
@@ -68,10 +71,41 @@ const Home: React.FC =()=>{
   const [user, setUser] = useState<null|User>(null);
 
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const userData = localStorage.getItem('user');
+
+  const baseMenuItems =[
+    {
+      key: '1',
+      icon: <UploadOutlined />,
+      label: 'Upload',
+    },
+    {
+      key: '2',
+      icon: <VideoCameraOutlined />,
+      label: 'Result',
+    },
+    {
+      key: '3',
+      icon: <MessageOutlined />,
+      label: 'Contact Us',
+    }
+  ];
+
+  const adminMenuItems = [
+    {
+      key: '4',
+      icon: <SearchOutlined />,
+      label: 'View Data',
+    }
+  ];
+
+  const menuItems = [
+    ...baseMenuItems,
+    ...(userData&&JSON.parse(userData).isAdmin === 1 ? adminMenuItems : []) // 仅管理员显示
+  ];
 
   useEffect(() => {
     // 从localStorage获取用户信息
-    const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
     } 
@@ -97,24 +131,8 @@ const Home: React.FC =()=>{
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={['1']}
-          items={[
-            {
-              key: '1',
-              icon: <UploadOutlined />,
-              label: 'Upload',
-            },
-            {
-              key: '2',
-              icon: <VideoCameraOutlined />,
-              label: 'Result',
-            },
-            {
-              key: '3',
-              icon: <UserOutlined />,
-              label: 'Contact Us',
-            },
-          ]}
+          selectedKeys={[selectedMenu]}
+          items={menuItems}
           onClick={handleMenuClick}
         />
       </Sider>
@@ -142,8 +160,9 @@ const Home: React.FC =()=>{
           }}
         >
           {selectedMenu === '1' && <UploadPage />}
-          {selectedMenu === '2' && <ResultPage />}
+          {selectedMenu === '2' && <ResultPage onNavigateToUpload={() => {setSelectedMenu('1');}}/>}
           {selectedMenu === '3' && <ContactPage/>}
+          {selectedMenu === '4' && <AdminDashboard/>}
         </Content>
       </Layout>
       <LoginPromptModal
