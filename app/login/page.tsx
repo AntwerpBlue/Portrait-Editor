@@ -39,7 +39,10 @@ export default function loginPage(){
 
       // 处理登录成功
       if (response.data.success) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        let user_data = response.data.user;
+        user_data={...user_data,expiresAt: new Date().getTime() + 24 * 3600 * 1000};
+
+        localStorage.setItem('user', JSON.stringify(user_data));
         // 登录成功，跳转到主页
         router.push('/dashboard');
       }

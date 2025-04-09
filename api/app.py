@@ -392,5 +392,52 @@ def delete_project():
 def serve_video(filename):
     return send_from_directory('videos', filename)  # 'videos' 是视频目录名
 
+@app.route('/api/admin/stats',methods=['POST'])
+def get_stats():
+    if request.get_json().get('isAdmin')==1:
+        conn=get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*) AS total_users from user
+                    """)
+                total_users = cursor.fetchone()["total_users"]
+                cursor.execute("""
+                    SELECT COUNT(*) AS weekly_requests FROM request WHERE UploadTime >= DATE(NOW()) - INTERVAL 1 WEEK
+                    """)
+                weekly_requests = cursor.fetchone()["weekly_requests"]
+                cursor.execute("""
+                    SELECT COUNT(*) AS total_requests FROM request
+                    """)
+                total_requests = cursor.fetchone()["total_requests"]
+                return jsonify({'total_users': total_users, 'weekly_requests': weekly_requests, 'total_requests': total_requests})
+        finally:
+            conn.close()
+    else:
+        return jsonify({"error": "Unauthorized"}), 403
+
+@app.route('/api/admin/projects',methods=['POST'])
+def get_projects_admin():
+    if request.get_json().get('isAdmin')==1:
+        conn=get_db_connection()
+        start=request.get_json().get('start') or '1970-01-01'
+        end=request.get_json().get('end') or datetime.now().strftime('%Y-%m-%d')
+        prop_type=request.get_json().get('promptType')
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT ProjectID, UserID, PromptType, PromptContent, UploadTime, CompleteTime, Status FROM request
+                    Where UploadTime BETWEEN %s AND %s
+                    AND (%s IS NULL OR PromptType = %s)
+                    ORDER BY UploadTime DESC
+                    """,(start,end, prop_type, prop_type))
+                projects = cursor.fetchall()
+                return jsonify(projects or [])
+        finally:
+            conn.close()
+    else:
+        return jsonify({"error": "Unauthorized"}), 403
+ 
+
 if __name__ == '__main__':
     app.run(debug=True)
