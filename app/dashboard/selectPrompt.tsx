@@ -16,12 +16,15 @@ const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
     };
   
     const [imagePrompt, setImagePrompt] = useState('');
-    const handleImagePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setImagePrompt(e.target.value);
-      };
+    const handleImagePromptChange = (value:string) => {
+        setImagePrompt(value);
+    };
 
-
+    const [relighteningBG, setRelighteningBG] = useState('');
     const [relighteningPrompt, setRelighteningPrompt] = useState('');
+    const handleRelighteningBGChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setRelighteningBG(e.target.value);
+    }
     const handleRelighteningPromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRelighteningPrompt(e.target.value);
     };
@@ -31,6 +34,7 @@ const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
             selectedOption,
             textPrompt,
             imagePrompt,
+            relighteningBG,
             relighteningPrompt
         };
         onSelect(data);
@@ -67,13 +71,20 @@ const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
             </Form.Item>
         )}
         {selectedOption === 'imagePrompt' &&(
-            <Form.Item label="Image Prompt">
-                <Input placeholder="Enter image prompt" onChange={handleImagePromptChange} required/>
+            <Form.Item<String> label="Image Prompt" rules={[{required: true, message: 'Please select image prompt type!'}]}>
+                <Select 
+                    placeholder="Enter image prompt" 
+                    onChange={handleImagePromptChange} 
+                    allowClear>
+                    <Option value="styleTransfer">Style Transfer</Option>
+                    <Option value="virtualTryOn">Virtual Try-on</Option>
+                </Select>
             </Form.Item>
         )}
         {selectedOption === 'relightening' &&(
             <Form.Item label="Relightening">
-            <Input placeholder='Enter a relightening prompt' onChange={handleRelighteningPromptChange} required/>
+            <Input placeholder='Enter the discription of light' onChange={handleRelighteningPromptChange} required/>
+            <Input placeholder='Enter the direction of light' onChange={handleRelighteningBGChange} required/>
             </Form.Item>
         )}
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import {App} from 'antd';
+import { App, message } from 'antd';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 
 const RootLayout = ({ children }: React.PropsWithChildren) => (

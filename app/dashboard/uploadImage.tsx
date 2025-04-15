@@ -9,12 +9,18 @@ interface UploadImageProps {
 }
 
 const UploadImage: React.FC<UploadImageProps> = ({onUploadSuccess}) => {
+  const token = localStorage.getItem('user');
   const props: UploadProps = {
     name: 'file',
     multiple: false,
   
     customRequest(options){
+      if(!token){
+        message.error('Please login first');
+        return;
+      }
       const formData = new FormData();
+      formData.append('user_id', JSON.parse(token).user_id);
       formData.append('file', options.file);
       axios.post('http://localhost:5000/uploadImage', formData)
         .then(response => {

@@ -9,7 +9,8 @@ import SubmitRequest from './submitRequest'
 
 export interface Prompt{
   type:string,
-  prompt:string
+  prompt:string,
+  BG:string|null
 }
 
 const UploadPage: React.FC = () => {
@@ -18,17 +19,17 @@ const UploadPage: React.FC = () => {
   const [current, setCurrent] = useState(0);
   const [isUploaded, setIsUploaded] = useState(false);
   const [imageId, setimageId] =useState<string|null>(null);
-  const [promptData, setPromptData] =useState<Prompt>({type:"", prompt:""});
+  const [promptData, setPromptData] =useState<Prompt>({type:"", prompt:"", BG:""});
 
   const handleData = (data: any) => {
     if(data.selectedOption === "textPrompt"){
-      setPromptData({type: "textPrompt", prompt: data.textPrompt});
+      setPromptData({type: "textPrompt", prompt: data.textPrompt, BG:null});
     }
     else if(data.selectedOption === "relightening"){
-      setPromptData({type: "relightening", prompt: data.relighteningPrompt});
+      setPromptData({type: "relightening", prompt: data.relighteningPrompt, BG:data.relighteningBG});
     }
     else if(data.selectedOption === "imagePrompt"){
-      setPromptData({type: "imagePrompt", prompt: data.imagePrompt});
+      setPromptData({type: "imagePrompt", prompt: data.imagePrompt, BG:null});
     }
   }
 
@@ -90,7 +91,11 @@ const UploadPage: React.FC = () => {
   }
 
   const cancel = () => {
-    setCurrent(current - 1);//////change to cancel all the inputs
+    setCurrent(0);//////change to cancel all the inputs
+    setIsUploaded(false);
+    setimageId(null);
+    setVideoId(null);
+    setPromptData({type:"", prompt:"", BG:""});
   };
 
   const items = steps.map((item) => ({ key: item.title, title: item.title }));

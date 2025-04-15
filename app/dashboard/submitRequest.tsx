@@ -17,19 +17,29 @@ const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, imageId, prompt 
     }
 
     const handleSubmit = () => {
+        const user=localStorage.getItem('user');
+        if (!user) {
+            message.error('Please login first');
+            return;
+        }
         const formData = new FormData();
         formData.append('videoId', videoId as string);
         formData.append('promptType', prompt.type);
         formData.append('promptContent', prompt.prompt);
+        if (prompt.type === 'relightening' && prompt.BG) {
+            formData.append('relightBG', prompt.BG);
+        }
         formData.append('email', email);
+        formData.append('user_id', JSON.parse(user).user_id)
         if (imageId) {
             formData.append('imageId', imageId as string);
         }
-        axios.post('http://localhost:5000/submit', formData)
+        axios.post('http://localhost:5000/api/submit', formData)
             .then((response) => {
                 message.success('Submit successfully!');
             })
             .catch((error) => {
+                console.log(error.response.data.error);
                 message.error(error.response.data.error);
             });
     }

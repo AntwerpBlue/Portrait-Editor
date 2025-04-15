@@ -66,7 +66,6 @@ const Welcome = ({user}:{user:User|null}) => {
 }
 
 const Home: React.FC =()=>{
-  const [collapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState('1');
   const [user, setUser] = useState<null|User>(null);
 
@@ -124,7 +123,7 @@ const Home: React.FC =()=>{
 
   return (
     <Layout style={{display: 'flex', flexDirection: 'row', height: '100vh'}}>
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+      <Sider>
         <div className="demo-logo-vertical">
           <Image src={logo} alt="logo" style={{maxWidth: '100%', maxHeight: '100%'}} />
         </div>
@@ -137,17 +136,7 @@ const Home: React.FC =()=>{
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer}}>
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: '16px',
-              width: 64,
-              height: 64,
-            }}
-          />
+        <Header style={{ padding: 0, background: colorBgContainer, paddingLeft: 24, display: 'flex', justifyContent: 'space-between'}}>
             <Welcome user={user}/>
         </Header>
         <Content

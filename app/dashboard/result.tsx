@@ -9,7 +9,7 @@ interface VideoProject {
   id: string;
   name: string;
   thumbnail: string; // 视频缩略图URL
-  status: 'processing' | 'completed' | 'failed';
+  status: 'processing' | 'completed' | 'failed' | 'waiting';
   submitTime: string;
   completeTime: string | null;
   videoUrl: string | null;
@@ -20,10 +20,10 @@ function convertToVideoProject(data: any): VideoProject {
     id: data.ProjectID,
     name: data.Name,
     thumbnail: data.ThumbNail,
-    status: data.Status as 'processing' | 'completed' | 'failed',
+    status: data.Status as 'processing' | 'completed' | 'failed' | 'waiting',
     submitTime: data.UploadTime,
     completeTime: data.CompleteTime,
-    videoUrl: data.VideoURL
+    videoUrl: data.Result
   };
 }
 
@@ -128,6 +128,12 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
               )}
               {record.status === 'failed' && (
                 <Tag color="red" style={{ marginLeft: 8 }}>失败</Tag>
+              )}
+              {record.status === 'waiting' && (
+                <Tag color="orange" style={{ marginLeft: 8 }}>等待中</Tag>
+              )}
+              {record.status === 'completed' && (
+                <Tag color="green" style={{ marginLeft: 8 }}>已完成</Tag>
               )}
             </div>
           ),

@@ -55,7 +55,7 @@ export default function ForgetPage(){
         message.error("验证码错误")
       }
       else{
-        axios.post("http://localhost:5000/register",{
+        axios.post("http://localhost:5000/api/register",{
           username:values.username,
           password:values.password,
           mail:values.mail
