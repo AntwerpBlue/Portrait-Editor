@@ -17,7 +17,6 @@ import smtplib
 import random
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import click
 
 app = Flask(__name__)
 CORS(app,
@@ -332,9 +331,6 @@ def get_submit():
         finally:
             connection.close()
     return jsonify({'message': 'Submit successful'}), 200
-
-
-
 
 
 
