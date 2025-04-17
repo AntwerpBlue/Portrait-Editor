@@ -1,8 +1,9 @@
 import cv2
 import os
 import argparse
+from flask import current_app
 
-def generate_thumbnails(video_path, output_dir='thumbnails', num_thumbnails=5):
+def generate_thumbnails(video_path, num_thumbnails=5):
     """
     从视频中生成缩略图
     
@@ -11,6 +12,7 @@ def generate_thumbnails(video_path, output_dir='thumbnails', num_thumbnails=5):
         output_dir (str): 缩略图输出目录
         num_thumbnails (int): 要生成的缩略图数量
     """
+    output_dir=os.path.join(current_app.config['UPLOAD_FOLDER'], 'thumbnails')
     # 创建输出目录
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)

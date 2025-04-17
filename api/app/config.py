@@ -50,8 +50,16 @@ class Config:
     REDIS_CONFIG = {
         'host': os.getenv('REDIS_HOST', 'localhost'),
         'port': int(os.getenv('REDIS_PORT', 6379)),
-        'queue_name': 'video_edit_tasks'
+        'db': 0,                 # 数据库编号(0-15)
+        'decode_responses': False, # 是否自动解码返回值为字符串
+        'socket_timeout': 30,                # 连接超时(秒)
+        'socket_connect_timeout': 5,         # 连接建立超时
+        'retry_on_timeout': True,            # 超时自动重试
+        'max_connections': 10,              # 连接池最大连接数
+        'health_check_interval': 30,         # 健康检查间隔
     }
+
+    WORKER_COUNT=1
 
     TASK_TIMEOUT = 60*60*2
 

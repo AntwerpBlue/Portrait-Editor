@@ -1,6 +1,7 @@
 from ..database import execute_query, execute_update
 from datetime import datetime
 from flask import current_app
+from ..task_manager.task_submission import submit_edit_request
 
 def create_project(video_id, prompt_type, prompt_content, email, user_id, image_id=None, relightBG=None):
     """创建新项目"""
@@ -31,6 +32,20 @@ def create_project(video_id, prompt_type, prompt_content, email, user_id, image_
         VALUES ({', '.join(['%s']*len(values))})
     """
     execute_update(query, values)
+
+    task_id=submit_edit_request(
+        project_id=project_counter+1,
+        video_id=video_id,
+        prompt_type=prompt_type,
+        prompt_content=prompt_content,
+        image_id=image_id if prompt_type == 'imagePrompt' else None,
+        relightBG=relightBG if prompt_type == 'relightBG' else None,
+    )
+    
+    execute_update(
+        "UPDATE request SET TaskID = %s WHERE ProjectID = %s",
+        (task_id, project_counter+1)
+    )
     return project_counter+1
 
 def get_user_projects(user_id):

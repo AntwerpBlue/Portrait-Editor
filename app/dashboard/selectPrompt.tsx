@@ -83,8 +83,14 @@ const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
         )}
         {selectedOption === 'relightening' &&(
             <Form.Item label="Relightening">
+            <Select 
+                placeholder="Enter the direction of light" 
+                onChange={handleRelighteningBGChange} 
+                allowClear>
+                <Option value="left">Left</Option>
+                <Option value="right">Right</Option>
+            </Select>
             <Input placeholder='Enter the discription of light' onChange={handleRelighteningPromptChange} required/>
-            <Input placeholder='Enter the direction of light' onChange={handleRelighteningBGChange} required/>
             </Form.Item>
         )}
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>

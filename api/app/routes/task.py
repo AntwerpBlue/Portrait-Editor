@@ -1,12 +1,12 @@
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, jsonify, current_app, Response
 from redis import Redis
-from config import Config
+import json
 
 task_bp = Blueprint('task', __name__)
-redis = Redis(current_app.config['REDIS_CONFIG'])
 
 @task_bp.route('/status/<task_id>', methods=['GET'])
 def get_task_status(task_id):
+    redis = current_app.extensions['redis']
     task_data = redis.hgetall(f"task:{task_id}")
     if not task_data:
         return jsonify({"error": "Task not found"}), 404
@@ -25,6 +25,7 @@ def get_task_status(task_id):
 
 @task_bp.route('/progress/<task_id>', methods=['GET'])
 def get_task_progress(task_id):
+    redis = current_app.extensions['redis'].redis
     # 创建发布/订阅监听
     pubsub = redis.pubsub()
     pubsub.subscribe(f"task:{task_id}")
