@@ -47,6 +47,9 @@ class Config:
     USED_FILE_EXPIRE_TIME = timedelta(days=30)
 
     # Redis 配置
+    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+    REDIS_DB = 0
     REDIS_CONFIG = {
         'host': os.getenv('REDIS_HOST', 'localhost'),
         'port': int(os.getenv('REDIS_PORT', 6379)),
@@ -58,7 +61,7 @@ class Config:
         'max_connections': 10,              # 连接池最大连接数
         'health_check_interval': 30,         # 健康检查间隔
     }
-
+    ENABLE_BACKGROUND_WORKER = True
     WORKER_COUNT=1
 
     TASK_TIMEOUT = 60*60*2

@@ -1,7 +1,9 @@
 from ..database import execute_query, execute_update
 from datetime import datetime
 from flask import current_app
-from ..task_manager.task_submission import submit_edit_request
+import json
+import redis
+import uuid
 
 def create_project(video_id, prompt_type, prompt_content, email, user_id, image_id=None, relightBG=None):
     """创建新项目"""
@@ -23,8 +25,8 @@ def create_project(video_id, prompt_type, prompt_content, email, user_id, image_
         values.append(relightBG)
 
     columns.append("ProjectID")
-    project_counter=execute_query("SELECT COUNT(*) AS counter FROM request",fetch_one=True)['counter']
-    values.append(project_counter+1)
+    project_id=str(uuid.uuid4())
+    values.append(project_id)
 
     query = f"""
         INSERT INTO request 
@@ -34,7 +36,8 @@ def create_project(video_id, prompt_type, prompt_content, email, user_id, image_
     execute_update(query, values)
 
     task_id=submit_edit_request(
-        project_id=project_counter+1,
+        project_id=project_id,
+        email=email,
         video_id=video_id,
         prompt_type=prompt_type,
         prompt_content=prompt_content,
@@ -44,9 +47,38 @@ def create_project(video_id, prompt_type, prompt_content, email, user_id, image_
     
     execute_update(
         "UPDATE request SET TaskID = %s WHERE ProjectID = %s",
-        (task_id, project_counter+1)
+        (task_id, project_id)
     )
-    return project_counter+1
+    return project_id
+
+def submit_edit_request(project_id, email, video_id, prompt_type, prompt_content, image_id=None, relightBG=None):
+    """使用连接池的生产者"""
+    redis_client = current_app.redis_pool.client
+    try:
+        task_data = {
+            "project_id": project_id,
+            "email": email,
+            "video_id": video_id,
+            "prompt_type": prompt_type,
+            "prompt_content": prompt_content,
+            "image_id": image_id,
+            "relightBG": relightBG,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        # 使用管道保证原子性
+        with redis_client.pipeline() as pipe:
+            pipe.lpush('edit_tasks', json.dumps(task_data))
+            pipe.hset(f"task:{project_id}", mapping={
+                "status": "waiting",
+                "created_at": task_data["created_at"]
+            })
+            pipe.execute()
+            
+        return f"redis-{project_id}"
+    except redis.RedisError as e:
+        current_app.logger.error(f"Redis operation failed: {str(e)}")
+        raise
 
 def get_user_projects(user_id):
     """获取用户所有项目"""

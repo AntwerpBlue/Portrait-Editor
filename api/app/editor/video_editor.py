@@ -10,21 +10,20 @@ class AlgorithmEditor(BaseEditor):
     def __init__(self, task_data):
         super().__init__(task_data)
         self.video_id = task_data.get('video_id', '')
-        self.output_dir = task_data.get('output_dir', os.path.join(app.config['UPLOAD_FOLDER'],'result'))
+        self.output_dir = os.path.join(app.config['UPLOAD_FOLDER'],'result')
         os.makedirs(self.output_dir, exist_ok=True)
-        self.input_path = os.path.join(app.config['UPLOAD_FOLDER'], 'video', self.video_id)
+        self.input_path = os.path.join(app.config['UPLOAD_FOLDER'], 'video', self.video_id+'.mp4')
 
     def get_required_fields(self):
-        return ['video_id', 'output_dir']
+        return ['video_id', 'project_id', 'prompt_type', 'prompt_content']
     
     def process(self, progress_callback=None):
         try:
             if progress_callback:
                 progress_callback(0, "Starting video processing")
-            
+            app.logger.info(f"Processing video: {self.video_id}")
             clip = VideoFileClip(self.input_path)
-            duration = min(10.0, clip.duration)
-            short_clip = clip.subclip(0, duration)
+            short_clip = clip.subclipped(0, 10)
             
             output_path = os.path.join(
                 self.output_dir, 
