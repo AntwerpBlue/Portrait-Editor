@@ -41,7 +41,7 @@ def get_all_projects(start_date=None, end_date=None, prompt_type=None):
     
     query = f"""
         SELECT 
-            ProjectID, UserID, PromptType, 
+            ProjectID, UserID, PromptType, PromptContent, 
             DATE_FORMAT(UploadTime, '%%Y-%%m-%%d %%H:%%i:%%s') as UploadTime,
             DATE_FORMAT(CompleteTime, '%%Y-%%m-%%d %%H:%%i:%%s') as CompleteTime,
             Status 

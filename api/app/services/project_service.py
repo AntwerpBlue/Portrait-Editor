@@ -84,7 +84,7 @@ def get_user_projects(user_id):
     """获取用户所有项目"""
     return execute_query(
         """
-        SELECT ProjectID, Name, ThumbNail, Status, UploadTime, CompleteTime, Result 
+        SELECT ProjectID, Name, ThumbNail, Status, UploadTime, CompleteTime, Result, PromptType,PromptContent, RelightBG
         FROM request 
         WHERE UserID = %s 
         ORDER BY UploadTime DESC

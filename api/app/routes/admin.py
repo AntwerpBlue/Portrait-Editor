@@ -21,7 +21,6 @@ def get_all_projects():
             start_date = request.get_json().get('start')
             end_date = request.get_json().get('end')
             prompt_type = request.get_json().get('promptType')
-            
             projects = admin_service.get_all_projects(
                 start_date=start_date,
                 end_date=end_date,

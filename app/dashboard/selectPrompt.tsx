@@ -22,8 +22,8 @@ const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
 
     const [relighteningBG, setRelighteningBG] = useState('');
     const [relighteningPrompt, setRelighteningPrompt] = useState('');
-    const handleRelighteningBGChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setRelighteningBG(e.target.value);
+    const handleRelighteningBGChange = (value:string) => {
+        setRelighteningBG(value);
     }
     const handleRelighteningPromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRelighteningPrompt(e.target.value);

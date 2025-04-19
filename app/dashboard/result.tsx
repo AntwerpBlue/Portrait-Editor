@@ -13,6 +13,21 @@ interface VideoProject {
   submitTime: string;
   completeTime: string | null;
   videoUrl: string | null;
+  prompt: string|null;
+}
+
+function getPrompt(data:any):string{
+  const type=data.PromptType;
+  if(type==="textPrompt"){
+    return "TextPrompt: "+data.PromptContent;
+  }
+  else if(type==="imagePrompt"){
+    return "ImagePrompt: "+data.PromptContent;
+  }
+  else if(type==="relightening"){
+    return "Relightening: "+data.PromptContent+"-from "+data.RelightBG;
+  }
+  return "";
 }
 
 function convertToVideoProject(data: any): VideoProject {
@@ -23,7 +38,8 @@ function convertToVideoProject(data: any): VideoProject {
     status: data.Status as 'processing' | 'completed' | 'failed' | 'waiting',
     submitTime: data.UploadTime,
     completeTime: data.CompleteTime,
-    videoUrl: data.Result
+    videoUrl: data.Result,
+    prompt: getPrompt(data)
   };
 }
 
@@ -111,7 +127,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
       dataSource={filteredProjects}
       loading={loading}
       pagination={{
-        pageSize: 10,
+        pageSize: 5,
       }}
       metas={{
         title: {
@@ -140,9 +156,10 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
         },
         avatar: {
           dataIndex: 'thumbnail',
+          editable: false,
           render: (text) => (
             <Image
-              src={"https://img1.ali213.net/glpic/2019/08/02/584_20190802115314395.jpg"}
+              src={"https://img1.ali213.net/glpic/2019/08/02/584_20190802115314395.jpg"}//////TODO: change to real thumbnail
               width={80}
               height={60}
               style={{ borderRadius: 4 }}
@@ -165,12 +182,13 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
         description: {
           render: (_, record) => (
             <div>
-              <div>提交时间: {dayjs(record.submitTime).format('YYYY-MM-DD HH:mm')}</div>
+              <div>提交时间: {dayjs(record.submitTime+'+08:00').format('YYYY-MM-DD HH:mm:ss')}</div>
               {record.completeTime ? (
-                <div>完成时间: {dayjs(record.completeTime).format('YYYY-MM-DD HH:mm')}</div>
+                <div>完成时间: {dayjs(record.completeTime+'+08:00').format('YYYY-MM-DD HH:mm:ss')}</div>
               ) : (
                 <div>状态: 处理中</div>
               )}
+              <div>{record.prompt}</div>
             </div>
           ),
         },

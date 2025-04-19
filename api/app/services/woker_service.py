@@ -6,6 +6,8 @@ from datetime import datetime
 from flask import current_app
 from ..editor.video_editor import AlgorithmEditor
 from ..utils.email_utils import send_result_email
+from ..database import execute_update
+from ..utils.thumbnail_gen import get_thumbnail
 
 class TaskConsumer:
     def __init__(self, app):
@@ -31,6 +33,7 @@ class TaskConsumer:
                     update_data = {"status": status, **kwargs}
                     if status == "processing":
                         update_data["started_at"] = datetime.now().isoformat()
+                        execute_update("UPDATE request SET Status = %s WHERE ProjectID = %s", ("processing", project_id))
                     elif status in ("completed", "failed"):
                         update_data["finished_at"] = datetime.now().isoformat()
                     
@@ -64,9 +67,12 @@ class TaskConsumer:
                 result_url=result,
                 progress=100
             )
-            current_app.logger.info(f"Task {project_id} completed")
+            current_app.logger.info(f"generate thumbnail for video {task_data['video_id']}")
+            thumbnail=get_thumbnail(task_data["video_id"],current_app.config['UPLOAD_FOLDER'])
+            query="UPDATE request SET Status = %s, Result = %s, CompleteTime = %s, ThumbNail = %s WHERE ProjectID = %s"
+            execute_update(query, ("completed", result, datetime.now(),thumbnail, project_id))
             send_result_email(email, project_id, result)
-
+            current_app.logger.info(f"Task {project_id} completed")
         except Exception as e:
             # 4. 处理失败更新状态
             self._update_task_status(

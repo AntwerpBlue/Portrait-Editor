@@ -1,49 +1,13 @@
 import React, {useState} from 'react'
 import { Button, message, Form, Input } from 'antd';
-import type { Prompt } from './upload';
-import axios from 'axios';
+
+
 
 interface SubmitRequestProps{
-    videoId:string|null,
-    imageId:string|null,
-    prompt:Prompt
+    onEmailChange:(email:string)=>void
 }
 
-const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, imageId, prompt }) => { 
-    const [email, setEmail] = useState('')
-
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEmail(e.target.value);
-    }
-
-    const handleSubmit = () => {
-        const user=localStorage.getItem('user');
-        if (!user) {
-            message.error('Please login first');
-            return;
-        }
-        const formData = new FormData();
-        formData.append('videoId', videoId as string);
-        formData.append('promptType', prompt.type);
-        formData.append('promptContent', prompt.prompt);
-        if (prompt.type === 'relightening' && prompt.BG) {
-            formData.append('relightBG', prompt.BG);
-        }
-        formData.append('email', email);
-        formData.append('user_id', JSON.parse(user).user_id)
-        if (imageId) {
-            formData.append('imageId', imageId as string);
-        }
-        axios.post('http://localhost:5000/api/submit', formData)
-            .then((response) => {
-                message.success('Submit successfully!');
-            })
-            .catch((error) => {
-                console.log(error.response.data.error);
-                message.error(error.response.data.error);
-            });
-    }
-
+const SubmitRequest: React.FC<SubmitRequestProps> = ({onEmailChange }) => { 
     return(
         <Form
             name="basic"
@@ -59,13 +23,10 @@ const SubmitRequest: React.FC<SubmitRequestProps> = ({ videoId, imageId, prompt 
             name="email"
             rules={[{ required: true, message: 'Please input your email' }]}
             >
-            <Input placeholder='Please input your email' onChange={handleEmailChange}/>
+            <Input placeholder='Please input your email' onChange={(e)=>onEmailChange(e.target.value)} />
             </Form.Item>
 
             <Form.Item label={null}>
-            <Button type="primary" htmlType="submit" onClick={handleSubmit}>
-                Submit
-            </Button>
             </Form.Item>
         </Form>
     )
