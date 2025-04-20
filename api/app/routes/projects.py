@@ -70,6 +70,6 @@ def submit_project():
         project_service.connect_file_to_project(video_id,project_id,"video")
         if prompt_type == 'imagePrompt':
             project_service.connect_file_to_project(image_id,project_id,"image")
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'message': 'Submit successfully!'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

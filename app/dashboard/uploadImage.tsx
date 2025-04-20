@@ -22,7 +22,7 @@ const UploadImage: React.FC<UploadImageProps> = ({onUploadSuccess}) => {
       const formData = new FormData();
       formData.append('user_id', JSON.parse(token).user_id);
       formData.append('file', options.file);
-      axios.post('http://localhost:5000/uploadImage', formData)
+      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/uploadImage`, formData)
         .then(response => {
           console.log(response.data.file_id);
           if(onUploadSuccess){onUploadSuccess(response.data.file_id);}

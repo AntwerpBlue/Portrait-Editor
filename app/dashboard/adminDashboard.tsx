@@ -13,7 +13,7 @@ import {
 } from 'antd';
 import { DownloadOutlined, ReloadOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import dayjs from 'dayjs';
+import dayjs,{Dayjs} from 'dayjs';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -31,6 +31,16 @@ interface ProjectsProps {
   promptType: string;
   prompt: string;
   timestamp: string;
+}
+
+interface ResultProps {
+  ProjectID: string,
+  UserID: string,
+  PromptType:string,
+  PromptContent:string,
+  UploadTime:string,
+  CompleteTime:string,
+  Status:string
 }
 
 function exportToCSV(data: ProjectsProps[], filename: string = 'projects.csv') {
@@ -67,7 +77,7 @@ const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [filters, setFilters] = useState({
-    dateRange: [] as any[],
+    dateRange: [] as Dayjs[],
     promptType: ''
   });
 
@@ -79,7 +89,7 @@ const AdminDashboard: React.FC = () => {
         return;
       }
       const isAdmin= JSON.parse(user).isAdmin;
-      const response = await axios.post('http://localhost:5000/api/admin/stats',{isAdmin: isAdmin});
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/stats`,{isAdmin: isAdmin});
       const formattedStats: StatsData = {
         totalUsers: response.data.total_users,
         weeklyUploads: response.data.weekly_requests,
@@ -87,7 +97,8 @@ const AdminDashboard: React.FC = () => {
       }
       setStats(formattedStats);
     } catch (error) {
-      message.error('获取统计信息失败');
+      console.error('获取统计信息失败: ',error)
+      message.error(`获取统计信息失败 ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
@@ -105,8 +116,8 @@ const AdminDashboard: React.FC = () => {
         end: filters.dateRange?.[1]?.format('YYYY-MM-DD'),
         promptType: filters.promptType
       };
-      const response = await axios.post('http://localhost:5000/api/admin/projects', params );
-      const formattedProjects = response.data.map((item: any) => ({
+      const response= await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/projects`, params );
+      const formattedProjects = response.data.map((item: ResultProps) => ({
         id: item.ProjectID,
         userId: item.UserID,
         promptType: item.PromptType,
@@ -116,7 +127,8 @@ const AdminDashboard: React.FC = () => {
       setProjects(formattedProjects);
       console.log(formattedProjects);
     } catch (error) {
-      message.error('获取项目失败');
+      console.error('获取项目失败: ',error)
+      message.error(`获取项目失败: ${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setLoading(false);
     }
@@ -128,7 +140,8 @@ const AdminDashboard: React.FC = () => {
     try {
       exportToCSV(projects, 'projects.csv');
     } catch (error) {
-      message.error('导出失败');
+      console.error('导出失败:', error);
+      message.error(`导出失败: ${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
       setExportLoading(false);
     }
@@ -209,7 +222,7 @@ const AdminDashboard: React.FC = () => {
         <Space size="large">
           <RangePicker 
             onChange={(dates) => {
-              setFilters({...filters, dateRange: dates? dates : []})}}
+              setFilters({...filters, dateRange: dates&&dates[0]&&dates[1]? [dates[0],dates[1] ]: []})}}
           />
           <Select
             placeholder="Prompt Type"

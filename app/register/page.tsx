@@ -17,6 +17,14 @@ import {
 import { theme } from 'antd';
 import '@ant-design/v5-patch-for-react-19';
 import axios from 'axios'
+
+interface registerProp{
+  username:string,
+  password:string,
+  mail:string,
+  captcha:string
+}
+
 export default function ForgetPage(){
   const router=useRouter();
   const { message } = App.useApp();
@@ -28,7 +36,7 @@ export default function ForgetPage(){
 
   const sendVerificationCode = async (mail:string) => {
     if(mail){
-      axios.post('http://localhost:5000/api/send-code',{
+      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/send-code`,{
         email:mail,
         type:"register"
       })
@@ -38,12 +46,13 @@ export default function ForgetPage(){
         message.success("验证码已发送");
       })
       .catch((err)=>{
+        console.error(err.data.error)
         message.error("发送失败");
       })
     }
   }
 
-  const handleSubmit = async (values:any) => {
+  const handleSubmit = async (values:registerProp) => {
     if(!values.username||!values.password||!values.mail){
       message.error("请输入完整信息")
     }
@@ -55,13 +64,13 @@ export default function ForgetPage(){
         message.error("验证码错误")
       }
       else{
-        axios.post("http://localhost:5000/api/register",{
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/register`,{
           username:values.username,
           password:values.password,
           mail:values.mail
         })
         .then((res)=>{
-          message.success("注册成功")
+          message.success(res.data.message)
           router.push('/login');
         })
         .catch((err)=>{

@@ -10,19 +10,19 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import '@ant-design/v5-patch-for-react-19';
-import { App, Form, theme,Button } from 'antd';
+import { App, theme,Button } from 'antd';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 
 
-export default function loginPage(){
+export default function LoginPage(){
   const { message } = App.useApp();
   const router = useRouter();
   const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: {username:string,password:string}) => {
     setLoading(true);
     try {
       // 前端验证
@@ -32,7 +32,7 @@ export default function loginPage(){
       }
 
       // 调用后端API
-      const response = await axios.post('http://localhost:5000/api/login', {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
         username: values.username,
         password: values.password,
       });

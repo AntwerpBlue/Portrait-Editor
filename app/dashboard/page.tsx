@@ -11,8 +11,6 @@ import AdminDashboard from './adminDashboard'
 import { useRouter } from 'next/navigation';
 
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   UploadOutlined,
   UserOutlined,
   VideoCameraOutlined,
@@ -21,7 +19,7 @@ import {
   MessageOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { Button, Layout, Menu, theme, Space, Typography, Avatar } from 'antd';
+import { Button, Layout, Menu, theme, Space, Typography, Avatar, MenuProps } from 'antd';
 import { LoginPromptModal } from '../../components/LoginPromptModal';
 
 const { Header, Content, Sider } = Layout;
@@ -108,12 +106,12 @@ const Home: React.FC =()=>{
     if (userData) {
       setUser(JSON.parse(userData));
     } 
-  }, []);
+  });
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const handleMenuClick = (key: any) =>{
+  const handleMenuClick: MenuProps['onClick'] = (key) =>{
     if(key.key=='2'&&!user){
       setShowLoginModal(true);
     }

@@ -28,7 +28,7 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
       const formData = new FormData();
       formData.append('file', options.file);
       formData.append('user_id', user.user_id);
-      axios.post('http://localhost:5000/uploadVideo', formData)
+      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/uploadVideo`, formData)
         .then(response => {
           console.log(response.data.file_id);
           if(onUploadSuccess){onUploadSuccess(response.data.file_id);}
@@ -48,7 +48,7 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
       else{
         const user = JSON.parse(token).user_id;
         try{
-          const res=await axios.post('http://localhost:5000/api/check-user', { user_id: user });
+          const res=await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/check-user`, { user_id: user });
           if(res.data.processing>=3){
             message.error('You can create 3 projects at most at a time!');
             return false;

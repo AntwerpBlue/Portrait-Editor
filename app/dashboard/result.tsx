@@ -1,6 +1,6 @@
 import type { ActionType } from '@ant-design/pro-components';
 import { ProList } from '@ant-design/pro-components';
-import { Drawer,Modal, Button, Image, message, Popconfirm, Tag } from 'antd';
+import { Button, Image, message, Popconfirm, Tag } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -16,7 +16,21 @@ interface VideoProject {
   prompt: string|null;
 }
 
-function getPrompt(data:any):string{
+interface ResultProp{
+  ProjectID: string,
+  UserID: string,
+  UploadTime:string,
+  CompleteTime:string,
+  Status:string,
+  Name:string,
+  ThumbNail:string,
+  Result:string|null,
+  PromptType:string,
+  PromptContent:string,
+  RelightBG:string|null
+}
+
+function getPrompt(data:ResultProp):string{
   const type=data.PromptType;
   if(type==="textPrompt"){
     return "TextPrompt: "+data.PromptContent;
@@ -30,7 +44,7 @@ function getPrompt(data:any):string{
   return "";
 }
 
-function convertToVideoProject(data: any): VideoProject {
+function convertToVideoProject(data: ResultProp): VideoProject {
   return {
     id: data.ProjectID,
     name: data.Name,
@@ -63,13 +77,14 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
       setLoading(true);
       try {
         console.log(user.user_id);
-        const response = await axios.post('http://localhost:5000/api/get-projects',{
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/get-projects`,{
           user_id: user.user_id
         });
         setProjects(response.data.map(convertToVideoProject));
         setFilteredProjects(response.data.map(convertToVideoProject));
       } catch (error) {
-        messageApi.error('获取项目列表失败');
+        console.error('获取项目列表失败: ',error)
+        messageApi.error(`获取项目列表失败: ${error instanceof Error ? error.message : '未知错误'}`);
       } finally {
         setLoading(false);
       }
@@ -92,7 +107,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
   // 处理重命名
   const handleRename = async (id: string, newName: string) => {
     try {
-      await axios.post('http://localhost:5000/api/rename-project',{
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/rename-project`,{
         project_id: id,
         new_name: newName
       });
@@ -100,21 +115,21 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
       setchangeFlage(!changeFlag);
       messageApi.success('重命名成功');
     } catch (error) {
-      messageApi.error('重命名失败');
+      messageApi.error(`重命名失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
   // 处理删除
   const handleDelete = async (id: string) => {
     try {
-      await axios.post('http://localhost:5000/api/delete-project',{
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-project`,{
         project_id: id,
       });
       setProjects(projects.filter(p => p.id !== id));
       setchangeFlage(!changeFlag);
       messageApi.success('删除成功');
     } catch (error) {
-      messageApi.error('删除失败');
+      messageApi.error(`删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
@@ -132,7 +147,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
       metas={{
         title: {
           dataIndex: 'name',
-          editable:  (text, record, index) => {
+          editable:  (record) => {
             // 只有特定状态的项目可编辑
             return record.status !== 'failed';
           },
@@ -157,7 +172,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
         avatar: {
           dataIndex: 'thumbnail',
           editable: false,
-          render: (text) => (
+          render: () => (
             <Image
               src={"https://img1.ali213.net/glpic/2019/08/02/584_20190802115314395.jpg"}//////TODO: change to real thumbnail
               width={80}
@@ -200,7 +215,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
               onClick={() => {
                 console.log("按钮被点击");
                 if (record.videoUrl) {
-                  const url="http://localhost:5000/api/videos/"+record.videoUrl+".mp4"
+                  const url=`${process.env.NEXT_PUBLIC_API_URL}/api/videos/`+record.videoUrl+".mp4"
                   window.open(url, '_blank');
                 } else {
                   message.info('视频尚未处理完成');
@@ -231,7 +246,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
         },
       }}
       editable={{
-        onSave: async (key, record, originRow) => {
+        onSave: async (key, record) => {
           await handleRename(record.id, record.name);
           return true;
         },

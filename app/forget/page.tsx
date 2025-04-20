@@ -34,7 +34,7 @@ export default function ForgetPage(){
     }
     try{
       setCaptchaLoading(true);
-      const res= await axios.post('http://localhost:5000/api/send-code',{
+      const res= await axios.post(`${process.env.REACT_APP_API_URL}/api/send-code`,{
         email:mail,
         username:username,
         type:"forget"
@@ -45,14 +45,15 @@ export default function ForgetPage(){
       return true;
     }
     catch (err){
-      message.error((err as any).response?.data?.message || "验证码发送失败");
+      console.error(err);
+      message.error("验证码发送失败");
       return false; // 发送失败返回false
     } finally {
       setCaptchaLoading(false);
     }
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: {username:string,mail:string,captcha:string}) => {
     if(!values.username||!values.mail){
       message.error("请输入完整信息")
     }

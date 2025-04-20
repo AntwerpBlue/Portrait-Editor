@@ -9,8 +9,8 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import {useRouter} from 'next/navigation';
-import axios,{AxiosError} from 'axios';
-import { Form, theme, App } from 'antd';
+import axios from 'axios';
+import { theme, App } from 'antd';
 
 import '@ant-design/v5-patch-for-react-19';
 
@@ -20,14 +20,14 @@ export default function ForgetPage(){
   const { message } = App.useApp();
   const { token } = theme.useToken();
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: {password:string,confirm:string}) => {
     if(values.password!==values.confirm){
       message.error('两次输入的密码不一致');
       return;
     }
     else{
       try{
-        const res=await axios.post('http://localhost:5000/api/forget/reset',{
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/forget/reset`,{
           new_password:values.password
         },{
           withCredentials:true

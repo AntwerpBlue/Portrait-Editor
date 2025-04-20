@@ -13,6 +13,14 @@ export interface Prompt{
   BG:string|null
 }
 
+export interface selectProp{
+  selectedOption:string,
+  textPrompt:string,
+  relighteningPrompt:string,
+  relighteningBG:string,
+  imagePrompt:string
+}
+
 const UploadPage: React.FC = () => {
   const { token } = theme.useToken();
   const [videoId, setVideoId] = useState<string|null>(null)
@@ -22,7 +30,7 @@ const UploadPage: React.FC = () => {
   const [promptData, setPromptData] =useState<Prompt>({type:"", prompt:"", BG:""});
   const [UserEmail, setUserEmail] = useState('');
 
-  const handleData = (data: any) => {
+  const handleData = (data: selectProp) => {
     if(data.selectedOption === "textPrompt"){
       setPromptData({type: "textPrompt", prompt: data.textPrompt, BG:null});
     }
@@ -66,9 +74,9 @@ const UploadPage: React.FC = () => {
     if (imageId) {
         formData.append('imageId', imageId as string);
     }
-    axios.post('http://localhost:5000/api/submit', formData)
+    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/submit`, formData)
         .then((response) => {
-            message.success('Submit successfully!');
+            message.success(response.data.message);
             cancel();
         })
         .catch((error) => {

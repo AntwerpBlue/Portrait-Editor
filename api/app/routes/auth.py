@@ -20,7 +20,8 @@ def register():
         user_id = auth_service.register_user(username, password, email)
         return jsonify({
             'success': True,
-            'user_id': user_id
+            'user_id': user_id,
+            'message': 'Success!'
         }), 201
     except ValueError as e:
         return jsonify({
@@ -62,7 +63,7 @@ def reset():
     if not email:
         return jsonify({"error": "无效 Token"}), 401
     auth_service.reset_password(email, new_password)
-    resp = make_response(jsonify({"success": True}))
+    resp = make_response(jsonify({"success": True, "message": "reset successfully"}))
     resp.delete_cookie("reset_token")
     return resp
 

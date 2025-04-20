@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import '@ant-design/v5-patch-for-react-19';
 import { Button, Form, Input, Select } from 'antd';
+import {selectProp} from './upload'
 
 const { Option } = Select;
 
-const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
+const SelectPrompt: React.FC<{ onSelect: (data:selectProp)=>void}> = ({onSelect}) => {
     const [selectedOption, setSelectedOption] = useState('');
     const handleSelectChange = (value: string) => {
         setSelectedOption(value);
@@ -71,7 +72,7 @@ const SelectPrompt: React.FC<{ onSelect: (data:any)=>void}> = ({onSelect}) => {
             </Form.Item>
         )}
         {selectedOption === 'imagePrompt' &&(
-            <Form.Item<String> label="Image Prompt" rules={[{required: true, message: 'Please select image prompt type!'}]}>
+            <Form.Item<string> label="Image Prompt" rules={[{required: true, message: 'Please select image prompt type!'}]}>
                 <Select 
                     placeholder="Enter image prompt" 
                     onChange={handleImagePromptChange} 
