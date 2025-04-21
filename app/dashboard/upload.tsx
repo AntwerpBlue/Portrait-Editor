@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState,useEffect} from 'react'
 import '@ant-design/v5-patch-for-react-19';
 import { Steps, message, Button, theme } from 'antd';
 import axios from 'axios';
@@ -29,6 +29,17 @@ const UploadPage: React.FC = () => {
   const [imageId, setimageId] =useState<string|null>(null);
   const [promptData, setPromptData] =useState<Prompt>({type:"", prompt:"", BG:""});
   const [UserEmail, setUserEmail] = useState('');
+  const [userId, setUserId] = useState<string | null>(null); // 新增状态存储用户ID
+
+  // 在组件挂载时从localStorage获取用户信息
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('user');
+      if (user) {
+        setUserId(JSON.parse(user).user_id);
+      }
+    }
+  }, []);
 
   const handleData = (data: selectProp) => {
     if(data.selectedOption === "textPrompt"){
@@ -53,8 +64,7 @@ const UploadPage: React.FC = () => {
   }
 
   const handleDoneClick = () => {
-    const user=localStorage.getItem('user');
-    if (!user) {
+    if (!userId) {
         message.error('Please login first');
         return;
     }
@@ -70,7 +80,7 @@ const UploadPage: React.FC = () => {
       return;
     }
     formData.append('email', UserEmail);
-    formData.append('user_id', JSON.parse(user).user_id)
+    formData.append('user_id', userId);
     if (imageId) {
         formData.append('imageId', imageId as string);
     }

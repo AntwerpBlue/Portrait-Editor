@@ -56,7 +56,7 @@ class TaskConsumer:
         # 2. 调用Editor处理（核心业务逻辑）
         try:
             with self.app.app_context():  # 确保Flask上下文
-                editor = AlgorithmEditor(task_data)
+                editor = AlgorithmEditor(task_data)   ####### TODO: change to portraitgen
                 self.app.logger.info(f"Task {project_id} started")
                 result = editor.process()
 

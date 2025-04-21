@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import { InboxOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { message, Upload } from 'antd';
@@ -13,21 +13,30 @@ interface UploadVideoProps {
 }
 
 const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
-  const token=localStorage.getItem('user');
+  const [userId, setUserId] = useState<string | null>(null); // 新增状态存储用户ID
+
+  // 在组件挂载时从localStorage获取用户信息
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('user');
+      if (user) {
+        setUserId(JSON.parse(user).user_id);
+      }
+    }
+  }, []);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const props: UploadProps = {
     name: 'file',
     multiple: false,
     maxCount: 1,
     customRequest(options){
-      if(!token){
+      if(!userId){
         setShowLoginModal(true);
         return false;
       }
-      const user=JSON.parse(token);
       const formData = new FormData();
       formData.append('file', options.file);
-      formData.append('user_id', user.user_id);
+      formData.append('user_id', userId);
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/uploadVideo`, formData)
         .then(response => {
           console.log(response.data.file_id);
@@ -41,14 +50,13 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
     },
   
     beforeUpload:async (file)=>{
-      if(!token){
+      if(userId){
         setShowLoginModal(true);
         return false;
       }
       else{
-        const user = JSON.parse(token).user_id;
         try{
-          const res=await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/check-user`, { user_id: user });
+          const res=await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/check-user`, { user_id: userId });
           if(res.data.processing>=3){
             message.error('You can create 3 projects at most at a time!');
             return false;

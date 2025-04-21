@@ -29,48 +29,52 @@ interface User{
   email:string,
 }
 
-const Welcome = ({user}:{user:User|null}) => {
+const Welcome = ({ user }: { user: User | null }) => {
   const router = useRouter();
-  return user?(    
+  
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+    }
+    router.push('/login');
+  };
+
+  const handleLogin = () => {
+    router.push('/login');
+  };
+
+  return user ? (
     <Space style={{ paddingRight: 24 }}>
       <Avatar size="small" icon={<UserOutlined />} />
       <Typography.Text>欢迎，{user?.username || '用户'}</Typography.Text>
-      <Button 
-        type="text" 
-        icon={<LogoutOutlined />} 
-        onClick={() => {
-          // 登出逻辑
-          localStorage.removeItem('user'); // 清除本地存储
-          router.push('/login'); // 跳转到登录页
-        }}
+      <Button
+        type="text"
+        icon={<LogoutOutlined />}
+        onClick={handleLogout}
       >
         退出登录
       </Button>
-    </Space>):(
-      <Space style={{ paddingRight: 24 }}>
+    </Space>
+  ) : (
+    <Space style={{ paddingRight: 24 }}>
       <Avatar size="small" icon={<UserOutlined />} />
       <Typography.Text>欢迎，请登录</Typography.Text>
-      <Button 
-        type="text" 
-        icon={<LoginOutlined />} 
-        onClick={() => {
-          router.push('/login'); // 跳转到登录页
-        }}
+      <Button
+        type="text"
+        icon={<LoginOutlined />}
+        onClick={handleLogin}
       >
         登录
       </Button>
     </Space>
-    )
+  )
 }
 
-const Home: React.FC =()=>{
+const Home: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('1');
-  const [user, setUser] = useState<null|User>(null);
-
+  const [user, setUser] = useState<null | User>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const userData = localStorage.getItem('user');
-
-  const baseMenuItems =[
+  const [menuItems, setMenuItems] = useState([
     {
       key: '1',
       icon: <UploadOutlined />,
@@ -86,44 +90,47 @@ const Home: React.FC =()=>{
       icon: <MessageOutlined />,
       label: 'Contact Us',
     }
-  ];
-
-  const adminMenuItems = [
-    {
-      key: '4',
-      icon: <SearchOutlined />,
-      label: 'View Data',
-    }
-  ];
-
-  const menuItems = [
-    ...baseMenuItems,
-    ...(userData&&JSON.parse(userData).isAdmin === 1 ? adminMenuItems : []) // 仅管理员显示
-  ];
-
-  useEffect(() => {
-    // 从localStorage获取用户信息
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } 
-  });
+  ]);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const handleMenuClick: MenuProps['onClick'] = (key) =>{
-    if(key.key=='2'&&!user){
+
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // 如果是管理员，添加管理菜单
+        if (parsedUser.isAdmin === 1) {
+          setMenuItems(prev => [
+            ...prev,
+            {
+              key: '4',
+              icon: <SearchOutlined />,
+              label: 'View Data',
+            }
+          ]);
+        }
+      }
+    }
+  }, []);
+
+  const handleMenuClick: MenuProps['onClick'] = (key) => {
+    if (key.key === '2' && !user) {
       setShowLoginModal(true);
     }
     setSelectedMenu(key.key);
   }
 
-
   return (
-    <Layout style={{display: 'flex', flexDirection: 'row', height: '100vh'}}>
+    <Layout style={{ display: 'flex', flexDirection: 'row', height: '100vh' }}>
       <Sider>
         <div className="demo-logo-vertical">
-          <Image src={logo} alt="logo" style={{maxWidth: '100%', maxHeight: '100%'}} />
+          <Image src={logo} alt="logo" style={{ maxWidth: '100%', maxHeight: '100%' }} />
         </div>
         <Menu
           theme="dark"
@@ -134,8 +141,8 @@ const Home: React.FC =()=>{
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer, paddingLeft: 24, display: 'flex', justifyContent: 'space-between'}}>
-            <Welcome user={user}/>
+        <Header style={{ padding: 0, background: colorBgContainer, paddingLeft: 24, display: 'flex', justifyContent: 'space-between' }}>
+          <Welcome user={user} />
         </Header>
         <Content
           style={{
@@ -147,9 +154,9 @@ const Home: React.FC =()=>{
           }}
         >
           {selectedMenu === '1' && <UploadPage />}
-          {selectedMenu === '2' && <ResultPage onNavigateToUpload={() => {setSelectedMenu('1');}}/>}
-          {selectedMenu === '3' && <ContactPage/>}
-          {selectedMenu === '4' && <AdminDashboard/>}
+          {selectedMenu === '2' && <ResultPage onNavigateToUpload={() => { setSelectedMenu('1'); }} />}
+          {selectedMenu === '3' && <ContactPage />}
+          {selectedMenu === '4' && <AdminDashboard />}
         </Content>
       </Layout>
       <LoginPromptModal
@@ -157,7 +164,6 @@ const Home: React.FC =()=>{
         onCancel={() => setShowLoginModal(false)}
       />
     </Layout>
-    
   );
 }
 

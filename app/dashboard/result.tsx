@@ -13,7 +13,7 @@ interface VideoProject {
   submitTime: string;
   completeTime: string | null;
   videoUrl: string | null;
-  prompt: string|null;
+  prompt: string| null;
 }
 
 interface ResultProp{
@@ -69,10 +69,9 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
   const [filteredProjects, setFilteredProjects] = useState<VideoProject[]>([]); // 新增：存储过滤后的数据
   const action = useRef<ActionType>(null);
 
-  const user= JSON.parse(localStorage.getItem('user')||'{}');
-
   // 从后端API获取用户视频项目数据
   useEffect(() => {
+    const user= JSON.parse(localStorage.getItem('user')||'{}');
     const fetchProjects = async () => {
       setLoading(true);
       try {
@@ -91,7 +90,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
     };
     
     fetchProjects();
-  }, [user.user_id, changeFlag]);
+  }, [changeFlag]);
 
   const handleSearch = (value: string) => {
     if (!value.trim()) {
