@@ -6,8 +6,6 @@ Flask_Cors==5.0.0
 Flask_JWT_Extended==4.7.1
 moviepy==2.1.2
 opencv_python==4.10.0.84
-PyJWT==2.8.0
-PyJWT==2.9.0
 PyJWT==2.10.1
 PyMySQL==1.1.1
 python-dotenv==1.1.0

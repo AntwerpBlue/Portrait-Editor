@@ -10,7 +10,7 @@ def create_project(video_id, prompt_type, prompt_content, email, user_id, image_
     if prompt_type == 'imagePrompt' and not image_id:
         raise ValueError("图片引导需要上传图片")
 
-    if prompt_type == 'relightBG' and not relightBG:
+    if prompt_type == 'relightening' and not relightBG:
         raise ValueError("重光照背景需要上传光照方向")
     # 构建动态SQL
     columns = ["VideoURL", "PromptType", "PromptContent", "Email", "UserID", "UploadTime","Status", "Name"]

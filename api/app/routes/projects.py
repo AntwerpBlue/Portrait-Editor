@@ -57,7 +57,7 @@ def submit_project():
         prompt = request.form.get('promptContent')
         email = request.form.get('email')
         image_id = request.form.get('imageId') if prompt_type == 'imagePrompt' else None
-        relightBG = request.form.get('relightBG') if prompt_type == 'imagePrompt' else None
+        relightBG = request.form.get('relightBG') if prompt_type == 'relightening' else None
         project_id=project_service.create_project(
             video_id=video_id,
             prompt_type=prompt_type,
