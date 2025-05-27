@@ -1,6 +1,8 @@
 # 基于生成式先验的肖像视频编辑系统的设计与实现
 
----
+## 效果演示
+
+To be updated.
 
 ## 课题简介
 
@@ -8,7 +10,7 @@
 高质量的肖像视频编辑不仅可以用于创造娱乐内容，还能在视频会议、在线教育、虚拟试衣等场景中发挥重要作用。然而，传统的肖像视频编辑方法在保持3D一致性、
 时间连续性和渲染效率方面存在诸多挑战。
 
-本课题基于2024 Siggraph 'PortraitGen: Portrait Video Editing Empowered by Multimodal Generative Priors'[https://ustc3dv.github.io/PortraitGen/]开发一款
+本课题基于[2024 Siggraph 'PortraitGen: Portrait Video Editing Empowered by Multimodal Generative Priors'](https://ustc3dv.github.io/PortraitGen/) 开发一款
 基于生成式先验的肖像视频编辑系统。该系统将利用多模态生成先验技术，实现与多模态提示（如文本、图像）
 一致且富有表现力的肖像视频风格化编辑。通过将视频帧提升到一个统一的动态3D高斯场，确保结构和时间的连贯性，同时采用神经高斯纹理机制，实现超过100FPS的渲染速度，支持复杂风格的编辑。
 
