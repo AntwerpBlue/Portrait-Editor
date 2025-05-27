@@ -4,6 +4,7 @@ import { Button, Image, message, Popconfirm, Tag } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
+import { log } from 'console';
 
 interface VideoProject {
   id: string;
@@ -122,7 +123,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
   const handleDelete = async (id: string) => {
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/delete-project`,{
-        project_id: id,
+        project_id: id
       });
       setProjects(projects.filter(p => p.id !== id));
       setchangeFlage(!changeFlag);
@@ -214,7 +215,7 @@ const ResultPage: React.FC<ResultProps> = ({onNavigateToUpload}: ResultProps) =>
               onClick={() => {
                 console.log("按钮被点击");
                 if (record.videoUrl) {
-                  const url=`${process.env.NEXT_PUBLIC_API_URL}/api/videos/`+record.videoUrl+".mp4"
+                  const url=`${process.env.NEXT_PUBLIC_API_URL}/api/videos/`+record.videoUrl;
                   window.open(url, '_blank');
                 } else {
                   message.info('视频尚未处理完成');

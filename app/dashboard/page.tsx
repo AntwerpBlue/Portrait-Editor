@@ -97,26 +97,43 @@ const Home: React.FC = () => {
   } = theme.useToken();
 
   useEffect(() => {
-    // 只在客户端执行
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-        
-        // 如果是管理员，添加管理菜单
-        if (parsedUser.isAdmin === 1) {
-          setMenuItems(prev => [
-            ...prev,
-            {
-              key: '4',
-              icon: <SearchOutlined />,
-              label: 'View Data',
-            }
-          ]);
-        }
+    // 立即读取当前用户状态
+    const updateUserState = () => {
+      if (typeof window !== 'undefined') {
+        const userData = localStorage.getItem('user');
+        const currentUser = userData ? JSON.parse(userData) : null;
+        setUser(currentUser);
+
+        // 更新菜单项（检查是否为管理员）
+        setMenuItems(prev => {
+          const baseItems = [...prev.slice(0, 3)]; // 保持前3个基础菜单
+          if (currentUser?.isAdmin === 1 && !prev.some(item => item.key === '4')) {
+            return [
+              ...baseItems,
+              {
+                key: '4',
+                icon: <SearchOutlined />,
+                label: 'View Data',
+              }
+            ];
+          }
+          return baseItems;
+        });
       }
-    }
+    };
+
+    // 初始读取
+    updateUserState();
+
+    // 添加全局storage事件监听
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        updateUserState();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleMenuClick: MenuProps['onClick'] = (key) => {
@@ -129,8 +146,13 @@ const Home: React.FC = () => {
   return (
     <Layout style={{ display: 'flex', flexDirection: 'row', height: '100vh' }}>
       <Sider>
-        <div className="demo-logo-vertical">
-          <Image src={logo} alt="logo" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+        <div className="demo-logo-vertical" style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '48px',
+        }}>
+          <Image src={logo} alt="logo" style={{ maxWidth: '90%', maxHeight: '80%' }} />
         </div>
         <Menu
           theme="dark"

@@ -17,13 +17,24 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
 
   // 在组件挂载时从localStorage获取用户信息
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const user = localStorage.getItem('user');
-      if (user) {
-        setUserId(JSON.parse(user).user_id);
-      }
-    }
-  }, []);
+      const updateUser = () => {
+        const user = localStorage.getItem('user');
+        setUserId(user ? JSON.parse(user).user_id : null);
+      };
+  
+      // 初始读取
+      updateUser();
+  
+      // 添加全局监听
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === 'user') {
+          updateUser();
+        }
+      };
+      window.addEventListener('storage', handleStorageChange);
+      
+      return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const props: UploadProps = {
     name: 'file',
@@ -50,7 +61,7 @@ const UploadVideo: React.FC<UploadVideoProps> = ({ onUploadSuccess }) => {
     },
   
     beforeUpload:async (file)=>{
-      if(userId){
+      if(!userId){
         setShowLoginModal(true);
         return false;
       }

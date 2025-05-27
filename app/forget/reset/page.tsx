@@ -27,7 +27,7 @@ export default function ForgetPage(){
     }
     else{
       try{
-        await axios.post(`${process.env.REACT_APP_API_URL}/api/forget/reset`,{
+        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/forget/reset`,{
           new_password:values.password
         },{
           withCredentials:true

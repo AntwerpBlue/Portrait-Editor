@@ -21,8 +21,9 @@ class Config:
     DB_CONFIG = {
         'host': os.getenv('DB_HOST', 'localhost'),
         'user': os.getenv('DB_USER', 'root'),
-        'password': os.getenv('DB_PASSWORD', 'QAQ122133122wzc'),
+        'password': os.getenv('DB_PASSWORD', 'oren@USTC'),
         'database': os.getenv('DB_NAME', 'portrait_editor'),
+        'unix_socket': '/home/oren/mysql_data/mysql.sock', 
         'cursorclass': pymysql.cursors.DictCursor
     }
     

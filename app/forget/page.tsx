@@ -34,7 +34,7 @@ export default function ForgetPage(){
     }
     try{
       setCaptchaLoading(true);
-      const res= await axios.post(`${process.env.REACT_APP_API_URL}/api/send-code`,{
+      const res= await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/send-code`,{
         email:mail,
         username:username,
         type:"forget"

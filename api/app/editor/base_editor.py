@@ -11,19 +11,19 @@ class BaseEditor(ABC):
         :param task_data: 包含任务相关数据的字典
         """
         self.task_data = task_data
-        self.validate_task_data()
+        #self.validate_task_data()
 
-    def validate_task_data(self):
-        """验证任务数据是否完整"""
-        required_fields = self.get_required_fields()
-        for field in required_fields:
-            if field not in self.task_data:
-                raise ValueError(f"缺少必要字段: {field}")
+    #def validate_task_data(self):
+    #    """验证任务数据是否完整"""
+    #    required_fields = self.get_required_fields()
+    #    for field in required_fields:
+    #        if field not in self.task_data:
+    #            raise ValueError(f"缺少必要字段: {field}")
     
-    @abstractmethod
-    def get_required_fields(self) -> list:
-        """获取此编辑器需要的必要字段列表"""
-        return []
+    #@abstractmethod
+    #def get_required_fields(self) -> list:
+    #    """获取此编辑器需要的必要字段列表"""
+    #    return []
     
     @abstractmethod
     def process(self, progress_callback: Optional[Callable[[int, str], None]] = None) -> str:

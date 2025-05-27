@@ -53,7 +53,8 @@ def upload_image():
 def serve_video(filename):
     return send_from_directory(
         os.path.join(current_app.config['UPLOAD_FOLDER'], 'result'),
-        filename
+        filename,
+        as_attachment=True
     )
 
 @uploads_bp.route('/api/images/<filename>')

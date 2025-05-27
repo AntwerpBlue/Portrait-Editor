@@ -5,6 +5,7 @@ import threading
 from datetime import datetime
 from flask import current_app
 from ..editor.video_editor import AlgorithmEditor
+from ..editor.portraitgen import PortraitGen
 from ..utils.email_utils import send_result_email
 from ..database import execute_update
 from ..utils.thumbnail_gen import get_thumbnail
@@ -36,6 +37,7 @@ class TaskConsumer:
                         execute_update("UPDATE request SET Status = %s WHERE ProjectID = %s", ("processing", project_id))
                     elif status in ("completed", "failed"):
                         update_data["finished_at"] = datetime.now().isoformat()
+                        execute_update("UPDATE request SET Status = %s WHERE ProjectID = %s", (status, project_id))
                     
                     pipe.hset(f"task:{project_id}", mapping=update_data)
                     pipe.execute()
@@ -56,9 +58,10 @@ class TaskConsumer:
         # 2. 调用Editor处理（核心业务逻辑）
         try:
             with self.app.app_context():  # 确保Flask上下文
-                editor = AlgorithmEditor(task_data)   ####### TODO: change to portraitgen
+                editor = PortraitGen(task_data)
                 self.app.logger.info(f"Task {project_id} started")
-                result = editor.process()
+                editor.process()
+                result=project_id+".mp4"
 
             # 3. 处理成功更新状态
             self._update_task_status(

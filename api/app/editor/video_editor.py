@@ -25,9 +25,10 @@ class AlgorithmEditor(BaseEditor):
             clip = VideoFileClip(self.input_path)
             short_clip = clip.subclipped(0, 10)
             
+            file_name = f"short_{os.path.basename(self.input_path)}"
             output_path = os.path.join(
                 self.output_dir, 
-                f"short_{os.path.basename(self.input_path)}"
+                file_name
             )
             
             if progress_callback:
@@ -50,7 +51,7 @@ class AlgorithmEditor(BaseEditor):
             if progress_callback:
                 progress_callback(100, "Processing complete")
             
-            return output_path
+            return file_name
             
         except Exception as e:
             if progress_callback:

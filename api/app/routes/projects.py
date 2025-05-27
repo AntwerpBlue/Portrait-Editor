@@ -31,10 +31,9 @@ def rename_project():
 @projects_bp.route('/delete-project', methods=['POST'])
 def delete_project():
     try:
-        project_id = request.form.get('project_id')
+        project_id = request.get_json().get('project_id')
         if not project_id:
             raise InvalidRequest("Missing project_id")
-        
         project_service.delete_project(project_id)
         return jsonify({'success': True})
     except Exception as e:
