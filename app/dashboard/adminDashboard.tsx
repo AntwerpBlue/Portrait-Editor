@@ -258,7 +258,7 @@ const AdminDashboard: React.FC = () => {
           dataSource={projects}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={{ pageSize: 4 }}
           bordered
         />
       </Card>
